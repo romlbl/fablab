@@ -11,6 +11,7 @@ use App\Models\Categories;
 use App\Models\Consommables;
 use App\Models\Type_travail;
 use App\Models\Jobs;
+use App\Models\Jobs_consommables;
 use Illuminate\Support\Carbon;
 
 
@@ -124,9 +125,48 @@ class JobModal extends Component
 
     public function creer(): bool
     {
-        dump($this->job);
+        $debut = Carbon::parse($this->job['date_debut']);
+        if( $this->job['duree_heures'] !== '' || $this->job['duree_minutes'] !== '') {
+            $fin = $debut->copy()
+                ->addHours((int) $this->job['duree_heures'])
+                ->addMinutes((int) $this->job['duree_minutes']);
+            $this->job['date_fin'] = $fin->toDateTimeString();
+        } else {
+            $fin = Carbon::parse($this->job['date_fin']);
+        }
 
-        return true;
+        $statut = 'en cours';
+        if($this->role === 'client') {
+            $statut = 'en attente';
+        }else if(now('Europe/Paris') > $fin) {
+            $statut = 'terminé';
+        }
+
+        $jobCree = Jobs::create([
+            'id_type' => $this->job['machine_id'] ? 1 : 2,
+            'status' => $statut,
+            'id_operateur' => $this->job['operateur_id'],
+            'id_client' => $this->job['client_id'],
+            'id_projet' => $this->job['projet_id'],
+            'description' => $this->job['description'],
+            'id_machine' => $this->job['machine_id'],
+            'id_type_travail' => $this->job['conception_id'],
+            'debut' => $debut,
+            'fin' => $fin,
+        ]);
+
+        foreach ($this->job['consommables'] as $consommable) {
+            $consommableObjet = Consommables::find($consommable['id']);
+            Jobs_consommables::create([
+                'id_job' => $jobCree->id,
+                'id_consommable' => $consommable['id'],
+                'quantite' => $consommable['quantite'],
+                'cout' => $consommable['quantite'] * $consommableObjet->cout_unitaire,
+            ]);
+        }
+
+        $this->reset('job');
+        $this->dispatch('job-ajoute', jobId: $job->id);
     }
 
     public function render()

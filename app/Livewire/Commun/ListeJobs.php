@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Commun;
 
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\Attributes\Reactive;
 use Illuminate\Support\Facades\Session;
@@ -21,6 +22,7 @@ class ListeJobs extends Component
         'operateur' => 'id_operateur',
     ];
 
+    #[On('job-ajoute')]
     public function appliquerFiltres(){
         $role = session('auth_role');
         $idUser = session('auth_user_id');

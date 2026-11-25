@@ -17,6 +17,20 @@ use App\Models\Type_travail;
 
 class Jobs extends Model
 {
+
+    protected $fillable = [
+        'id_type',
+        'status',
+        'id_operateur',
+        'id_client',
+        'id_projet',
+        'description',
+        'id_machine',
+        'id_type_travail',
+        'debut',
+        'fin',
+    ];
+
     //relations tables
     public function operateur(): BelongsTo
     {

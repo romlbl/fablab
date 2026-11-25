@@ -13,12 +13,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('id_type')->constrained('type_jobs')->restrictOnDelete();
             $table->string('status');
-            $table->unsignedBigInteger('id_operateur');
+            $table->unsignedBigInteger('id_operateur')->nullable();
             $table->unsignedBigInteger('id_client')->nullable();
             $table->unsignedBigInteger('id_projet')->nullable();
             $table->text('description')->nullable();
-            $table->timestamp('debut');
-            $table->timestamp('fin');
+            $table->timestamp('debut')->nullable();
+            $table->timestamp('fin')->nullable();
             $table->unsignedBigInteger('id_machine')->nullable();
             $table->foreignId('id_type_travail')->nullable()->constrained('type_travails')->nullOnDelete();
             $table->timestamps();
