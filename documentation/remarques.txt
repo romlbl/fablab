@@ -1,0 +1,16 @@
+pour les card projet/machines/consommable: h-fit ou tous même format ? meme format
+operateur visible sur les jobs pour le clients ? non
+export pour les clients ? oui
+client peut choisir operateur ? non
+recap annuel + reinitialisation annuel (meme si archivage)
+champ unité pour les consommable
+champ fournisseur consommables
+champ format brute de vente consommables
+notif client si job annuler
+heures general des tous les admin cumulle visible sur le dash admin
+type (machine ou collaborateurs) au moment d'ajout d'un job
+type de travail (CAO ou MO ou plus) au moment d'ajout d'un job
+
+
+au deployage:
+php artisan storage:link (pour que les url image marche)

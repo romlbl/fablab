@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html class="h-full bg-[#FAF8FF]" lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Maquette-client-home</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="widgets/job-modal.js"></script>
+  <script src="widgets/export-modal.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Space Grotesk"', 'sans-serif'],
+              body: ['"Inter"', 'sans-serif'],
+            },
+            colors: {
+              primary: '#00677f',
+              'primary-container': '#00b1d8',
+              surface: '#FAF8FF',
+            },
+            boxShadow: {
+              card: '0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02)',
+              'card-hover': '0 10px 25px -3px rgba(0, 103, 127, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04)',
+              modal: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+            },
+          },
+        },
+      };
+    </script>
+<style>
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body.menu-open,
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  .custom-scroll::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+  }
+
+  .donut-segment {
+    transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+    cursor: pointer;
+  }
+
+  .donut-segment:hover {
+    stroke-width: 14;
+  }
+
+      input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+@media (max-width: 1023.98px) {
+  #sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s linear 0.25s;
+  }
+  #sidebar.is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #sidebar { transition: none !important; }
+}
+
+.machine-card:has(.machine-open:focus-visible) {
+  outline: 2px solid #00677f;
+  outline-offset: 2px;
+}
+
+.cell-label {
+  display: block;
+  margin-bottom: 0.125rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+@media (min-width: 640px) {
+  .cell-label { display: none; }
+}
+
+@media (pointer: coarse) {
+  .tap { min-height: 44px; }
+  .tap-square { min-height: 44px; min-width: 44px; }
+  input, select, textarea { font-size: 16px !important; }
+}
+
+</style>
+
+</head>
+
+<body class="min-h-full bg-[#FAF8FF] text-slate-800 antialiased font-sans flex flex-col lg:flex-row selection:bg-[#00b1d8]/20 selection:text-[#10203E]">
+  <!-- fond menu -->
+  <div id="sidebar-overlay"class="fixed inset-0 z-40 hidden bg-slate-900/40 lg:hidden"aria-hidden="true"></div>
+  <!-- volet gauche-->
+  <aside id="sidebar" aria-label="Menu latéral"class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col justify-between overflow-y-auto border-r border-slate-200/80 bg-white p-6 pt-[max(1.5rem,env(safe-area-inset-top))] shadow-modal lg:sticky lg:top-0 lg:z-40 lg:h-screen lg:max-w-none lg:flex-shrink-0 lg:shadow-none">
+
+      <div class="space-y-8">
+          <div class="border-b border-slate-100 pb-2 pt-2">
+              <div class="flex items-start justify-between gap-3">
+                  <h2 class="min-w-0 text-lg font-bold leading-tight text-slate-900">
+                      Nom client (ou PO)
+                  </h2>
+
+                  <button id="close-sidebar" type="button" aria-label="Fermer le menu" class="tap-square -mr-2 -mt-1 inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 lg:hidden">
+                      <span class="material-symbols-outlined text-[22px]" aria-hidden="true">
+                          close
+                      </span>
+                  </button>
+              </div>
+          </div>
+
+          <nav aria-label="Navigation principale" class="space-y-1.5">
+
+              <a href="#machines" class="flex items-center rounded-2xl bg-[#10203E] px-4 py-3 text-sm font-bold text-white shadow-sm transition-all">
+                  Dashboard
+              </a>
+
+              <a href="#projets" aria-current="page" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  Projets
+              </a>
+
+              <a href="#machines" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  Machines
+              </a>
+
+              <a href="#consommables" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  Consommables
+              </a>
+
+          </nav>
+      </div>
+
+      <div class="mt-6 border-t border-slate-100 pt-6 lg:mt-0">
+          <a href="#deconnexion" class="group flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600">
+              <span>Déconnexion</span>
+          </a>
+      </div>
+
+  </aside>
+
+  <!-- contenu principale -->
+  <div class="flex-1 min-w-0 flex flex-col justify-between">
+
+      <!-- menu mobile -->
+      <header class="sticky top-0 z-30 flex items-center gap-2 border-b border-slate-200/80 bg-white/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur lg:hidden">
+
+          <button id="open-sidebar" type="button" aria-label="Ouvrir le menu" aria-controls="sidebar" aria-expanded="false" class="tap-square -ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+
+              <span class="material-symbols-outlined text-[24px]" aria-hidden="true">
+                  menu
+              </span>
+          </button>
+
+          <p class="text-base font-bold text-slate-900">
+              Projets
+          </p> 
+
+      </header>
+
+    <main class="max-w-[1400px] w-full mx-auto px-4 py-6 sm:px-6 md:py-8 space-y-10">
+      <!-- indicateurs -->
+      <section aria-labelledby="stats-heading" data-purpose="analytics-overview">
+        <div class="mb-5">
+          <h2 class="text-2xl font-bold text-slate-900 tracking-tight" id="stats-heading">Indicateurs</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          <article class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between hover:shadow-card-hover transition-all duration-300">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-900">Temps machines</h3>
+              </div>
+              <div class="relative flex items-center justify-center my-4">
+                <svg aria-label="Diagramme temps machines" class="w-44 h-44 max-w-full flex-shrink-0 transform -rotate-90" role="img" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" fill="none" r="48" stroke="#F1F5F9" stroke-width="12"></circle>
+                  <circle class="donut-segment text-[#00b1d8]" cx="60" cy="60" fill="none" r="48" stroke="currentColor" stroke-dasharray="144.7 301.6" stroke-dashoffset="0" stroke-width="12"></circle>
+                  <circle class="donut-segment text-indigo-500" cx="60" cy="60" fill="none" r="48" stroke="currentColor" stroke-dasharray="102.5 301.6" stroke-dashoffset="-144.7" stroke-width="12"></circle>
+                  <circle class="donut-segment text-amber-400" cx="60" cy="60" fill="none" r="48" stroke="currentColor" stroke-dasharray="54.4 301.6" stroke-dashoffset="-247.2" stroke-width="12"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                  <span class="text-xl text-slate-900">6h 57m</span>
+                </div>
+              </div>
+              <ul class="space-y-2.5 mt-4 text-xs font-medium text-slate-600 font-body">
+                <li class="flex items-center justify-between gap-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#00b1d8]"></span>
+                    <span>MAKERBOT</span>
+                  </div>
+                  <span class="text-slate-900 whitespace-nowrap">5h 00m (72%)</span>
+                </li>
+                <li class="flex items-center justify-between gap-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                    <span>TROTEC</span>
+                  </div>
+                  <span class="text-slate-900 whitespace-nowrap">1h 47m (25%)</span>
+                </li>
+                <li class="flex items-center justify-between gap-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                    <span>GOSCAN</span>
+                  </div>
+                  <span class="text-slate-900 whitespace-nowrap">00h 10m (3%)</span>
+                </li>
+              </ul>
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-100">
+              <select aria-label="Regrouper le temps machines" class="w-full text-base sm:text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-slate-700 hover:bg-slate-100/80 focus:border-[#10203E] focus:ring-1 focus:ring-[#10203E] transition-colors appearance-none cursor-pointer">
+                <option selected="">Par machine</option>
+                <option>Par projet</option>
+              </select>
+            </div>
+          </article>
+
+          <article class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between hover:shadow-card-hover transition-all duration-300">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-900">Temps conception</h3>
+              </div>
+              <div class="relative flex items-center justify-center my-4">
+                <svg aria-label="Diagramme temps conception" class="w-44 h-44 max-w-full flex-shrink-0 transform -rotate-90" role="img" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" fill="none" r="48" stroke="#F1F5F9" stroke-width="12"></circle>
+                  <circle class="donut-segment text-emerald-500" cx="60" cy="60" fill="none" r="48" stroke="currentColor" stroke-dasharray="174.9 301.6" stroke-dashoffset="0" stroke-width="12"></circle>
+                  <circle class="donut-segment text-teal-400" cx="60" cy="60" fill="none" r="48" stroke="currentColor" stroke-dasharray="84.4 301.6" stroke-dashoffset="-174.9" stroke-width="12"></circle>
+                  <circle class="donut-segment text-cyan-400" cx="60" cy="60" fill="none" r="48" stroke="currentColor" stroke-dasharray="42.2 301.6" stroke-dashoffset="-259.3" stroke-width="12"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                  <span class="text-xl text-slate-900">14h 45m</span>
+                </div>
+              </div>
+              <ul class="space-y-2.5 mt-4 text-xs font-medium text-slate-600 font-body">
+                <li class="flex items-center justify-between gap-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                    <span>Modélisation 3D (CAO)</span>
+                  </div>
+                  <span class="text-slate-900 whitespace-nowrap">8h 30m (58%)</span>
+                </li>
+                <li class="flex items-center justify-between gap-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-400 flex-shrink-0"></span>
+                    <span>Assemblage</span>
+                  </div>
+                  <span class="text-slate-900 whitespace-nowrap">4h 15m (28%)</span>
+                </li>
+                <li class="flex items-center justify-between gap-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 flex-shrink-0"></span>
+                    <span>Post traitement</span>
+                  </div>
+                  <span class="text-slate-900 whitespace-nowrap">2h 00m (14%)</span>
+                </li>
+              </ul>
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-100">
+              <select aria-label="Regrouper le temps de conception" class="w-full text-base sm:text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-slate-700 hover:bg-slate-100/80 focus:border-[#10203E] focus:ring-1 focus:ring-[#10203E] transition-colors appearance-none cursor-pointer">
+                <option selected="">Par poste</option>
+                <option>Par projet</option>
+              </select>
+            </div>
+          </article>
+
+          <article class="sm:col-span-2 xl:col-span-1 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between hover:shadow-card-hover transition-all duration-300">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-900">Consommables utilisés</h3>
+              </div>
+
+              <div class="mt-2 space-y-3">
+                <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400 pb-1.5 border-b border-slate-100">
+                  <span>Intitulé</span>
+                  <div class="flex items-center space-x-6">
+                    <span>Catégorie</span>
+                    <span class="w-16 text-right">Quantité</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-3 py-2 border-b border-slate-100/70 font-body text-xs hover:bg-slate-50/80 rounded-lg px-1 transition-colors">
+                  <div class="flex items-center space-x-2.5 min-w-0">
+                    <div class="truncate">
+                      <span class="text-slate-900 block truncate">PLA Noir</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-4 min-w-0">
+                    <span class="text-xs font-medium text-slate-600 truncate">Impression 3D FDM</span>
+                    <span class="w-16 flex-shrink-0 text-right text-slate-900 text-sm font-sans">20g</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-3 py-2 border-b border-slate-100/70 font-body text-xs hover:bg-slate-50/80 rounded-lg px-1 transition-colors">
+                  <div class="flex items-center space-x-2.5 min-w-0">
+                    <div class="truncate">
+                      <span class="text-slate-900 block truncate">PLA Orange</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-4 min-w-0">
+                    <span class="text-xs font-medium text-slate-600 truncate">Impression 3D FDM</span>
+                    <span class="w-16 flex-shrink-0 text-right text-slate-900 text-sm font-sans">10g</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-3 py-2 border-b border-slate-100/70 font-body text-xs hover:bg-slate-50/80 rounded-lg px-1 transition-colors">
+                  <div class="flex items-center space-x-2.5 min-w-0">
+                    <div class="truncate">
+                      <span class="text-slate-900 block truncate"> PMMA 5-Braxes</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-4 min-w-0">
+                    <span class="text-xs font-medium text-slate-600 truncate">Découpe laser</span>
+                    <span class="w-16 flex-shrink-0 text-right text-slate-900 text-sm font-sans">0.5m²</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-3 py-2 border-b border-slate-100/70 font-body text-xs hover:bg-slate-50/80 rounded-lg px-1 transition-colors">
+                  <div class="flex items-center space-x-2.5 min-w-0">
+                    <div class="truncate">
+                      <span class="text-slate-900 block truncate">PETG</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-4 min-w-0">
+                    <span class="text-xs font-medium text-slate-600 truncate">Impression 3D FDM</span>
+                    <span class="w-16 flex-shrink-0 text-right text-slate-900 text-sm font-sans">20g</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!--projets -->
+      <section aria-labelledby="projects-heading" data-purpose="active-projects-catalog" id="projets">
+        <div class="mb-5">
+          <h2 class="text-2xl font-bold text-slate-900 tracking-tight" id="projects-heading">Projets</h2>
+        </div>
+
+        <div class="flex flex-row flex-nowrap items-start gap-4 sm:gap-6 overflow-x-auto overflow-y-hidden overscroll-x-contain py-4 pl-2 snap-x snap-mandatory scroll-pl-2 sm:snap-none">
+
+          <article class="self-stretch sm:self-start flex-shrink-0 snap-start w-[78%] sm:w-full max-w-xs aspect-auto sm:aspect-[2/3] min-h-[26rem] sm:min-h-0 bg-white rounded-3xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:scale-105 hover:cursor-pointer transition-all duration-500 overflow-hidden flex flex-col group">
+            <div class="relative h-44 bg-slate-100 overflow-hidden">
+              <img alt="Prototypage Bras Robotique" class="w-full h-full object-cover" loading="lazy" src="../ballon.png">
+            </div>
+            <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Resin Less</h3>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed font-body">L’objectif principal est de trouver une solution permettant d’éliminer efficacement la résine des ballons de handball tout en réduisant le temps et les efforts nécessaires à cette opération</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="self-stretch min-h-[26rem] sm:self-start flex-shrink-0 snap-start w-[78%] sm:w-full max-w-xs aspect-auto sm:aspect-[2/3] sm:min-h-0 bg-white rounded-3xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:scale-105 hover:cursor-pointer transition-all duration-300 overflow-hidden flex flex-col group">
+            <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Autre projet</h3>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed font-body">Courte description du projet</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="self-stretch sm:self-start flex-shrink-0 snap-start w-[78%] sm:w-full max-w-xs aspect-auto sm:aspect-[2/3] min-h-[26rem] sm:min-h-0 bg-white rounded-3xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:scale-105 hover:cursor-pointer transition-all duration-300 overflow-hidden flex flex-col group">
+            <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Projet sans description</h3>
+              </div>
+            </div>
+          </article>
+
+          <article class="self-stretch sm:self-start flex-shrink-0 snap-start w-[78%] sm:w-full max-w-xs aspect-auto sm:aspect-[2/3] min-h-[26rem] sm:min-h-0 bg-white rounded-3xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:scale-105 hover:cursor-pointer transition-all duration-300 overflow-hidden flex flex-col group">
+            <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Projet sans description</h3>
+              </div>
+            </div>
+          </article>
+
+          <article class="self-stretch sm:self-start flex-shrink-0 snap-start w-[78%] sm:w-full max-w-xs aspect-auto sm:aspect-[2/3] min-h-[26rem] sm:min-h-0 bg-white rounded-3xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:scale-105 hover:cursor-pointer transition-all duration-300 overflow-hidden flex flex-col group">
+            <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Projet sans description</h3>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!--jobs -->
+      <section aria-labelledby="jobs-heading" data-purpose="jobs-execution-table" id="jobs-section">
+        <div class="space-y-4 pb-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+              <h2 class="text-2xl font-bold text-slate-900 tracking-tight" id="jobs-heading">Jobs</h2>
+            </div>
+            <div class="flex items-center gap-2.5 w-full md:w-auto">
+              <button id="open-export-modal" type="button" class="flex-1 md:flex-none inline-flex items-center justify-center space-x-1.5 px-3.5 py-2.5 md:py-2 rounded-xl text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10203E]">
+                <span class="material-symbols-outlined text-[16px] text-slate-500">download</span>
+                <span>Exporter</span>
+              </button>
+              <button id="open-job-modal" type="button" class="flex-1 md:flex-none inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 md:py-2 rounded-xl text-sm font-semibold text-white bg-[#10203E] hover:bg-[#004e60] shadow-sm transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10203E] focus-visible:ring-offset-2">
+                <span class="material-symbols-outlined text-[16px]">add</span>
+                <span>Ajouter un job</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- filtres -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="w-full sm:w-auto text-sm font-semibold text-slate-500 sm:mr-1">Trier par :</span>
+
+              <div class="relative" id="machine-filter">
+                <button id="machine-filter-button" type="button" aria-expanded="false" aria-controls="machine-filter-menu" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                  <span id="machine-filter-label">Machine</span>
+                  <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+
+                <div id="machine-filter-menu" class="hidden absolute left-0 top-full z-30 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+                  <div class="relative">
+                    <span class="material-symbols-outlined pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">search</span>
+                    <input id="machine-filter-search" type="search" placeholder="Rechercher une machine..." aria-label="Rechercher une machine" class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-base sm:text-sm text-slate-700 outline-none focus:border-[#10203E] focus:ring-1 focus:ring-[#10203E]">
+                  </div>
+                  <div id="machine-filter-suggestions" class="mt-2 space-y-1" role="listbox">
+                    <button type="button" data-machine="MAKERBOT" class="machine-suggestion block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#10203E]">MAKERBOT</button>
+                    <button type="button" data-machine="TROTEC" class="machine-suggestion block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#10203E]">TROTEC</button>
+                    <button type="button" data-machine="GOSCAN" class="machine-suggestion block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#10203E]">GOSCAN</button>
+                  </div>
+                  <p id="machine-filter-empty" class="hidden px-3 py-2 text-sm text-slate-400">Aucune machine trouvée</p>
+                </div>
+              </div>
+
+              <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                <span>Projet</span>
+                <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                <span>Type</span>
+                <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                <span>Consommable</span>
+                <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                <span>Tous les statut</span>
+                <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+            </div>
+              <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                <span>Touts les dates</span>
+                <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+          </div>
+        </div>
+
+        <!--liste jobs-->
+        <div class="xl:overflow-x-auto custom-scroll">
+          <div class="xl:min-w-[1100px] space-y-3">
+
+            <!-- en-tête tableau (ordi) -->
+            <div class="hidden xl:grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 items-center">
+              <div class="col-span-2">Description</div>
+              <div class="col-span-2">Machine</div>
+              <div class="col-span-1">Projet</div>
+              <div class="col-span-1">Début</div>
+              <div class="col-span-1">Fin</div>
+              <div class="col-span-2">Consommable &amp; Quantité</div>
+              <div class="col-span-1">Opérateur</div>
+              <div class="col-span-1 text-center">Type</div>
+              <div class="col-span-1 sticky right-0 z-20 bg-[#FAF8FF] pl-2 flex items-center justify-end text-right shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.04)]">
+                <span>Statut</span>
+              </div>
+            </div>
+
+            <!-- job 1 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-12 gap-x-4 gap-y-3 xl:gap-3 items-start xl:items-center px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+              <div class="col-span-1 sm:col-span-3 xl:col-span-2 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Description</span>
+                <h4 class="text-sm text-slate-900 break-words">Impression support châssis</h4>
+              </div>
+              <div class="col-span-1 xl:col-span-2 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Machine</span>
+                <span class="text-sm xl:text-xs text-slate-800">MAKERBOT</span>
+              </div>
+              <div class="col-span-1 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projet</span>
+                <span class="text-sm xl:text-xs text-slate-800">Resin Less</span>
+              </div>
+              <div class="col-span-1 text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Début</span>
+                09/11 10:00
+              </div>
+              <div class="col-span-1 text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Fin</span>
+                09/11 15:00
+              </div>
+              <div class="col-span-2 space-y-1 font-body text-sm xl:text-xs">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Consommable &amp; Quantité</span>
+                <div class="flex items-center space-x-1.5">
+                  <span class="text-slate-800 font-medium">PLA Noir</span>
+                  <span class="text-slate-800">·</span>
+                  <span class="text-slate-800">20g</span>
+                </div>
+                <div class="flex items-center space-x-1.5">
+                  <span class="text-slate-800 font-medium">PLA Orange</span>
+                  <span class="text-slate-800">·</span>
+                  <span class="text-slate-800">10g</span>
+                </div>
+              </div> 
+              <div class="col-span-1 font-body text-sm xl:text-xs text-slate-700 font-medium">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Opérateur</span>
+                Romain
+              </div>
+              <div class="col-span-1 xl:text-center text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                <span>Impression 3D</span>
+              </div>
+              <div class="col-span-1 col-start-2 row-start-1 sm:col-start-4 xl:col-start-auto xl:row-start-auto xl:sticky xl:right-0 xl:z-20 bg-white xl:pl-2 flex flex-col items-end xl:items-center justify-center xl:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] h-full py-1">
+                <div class="flex flex-col items-center justify-center" >
+                  <span class="inline-flex  items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] whitespace-nowrap font-bold uppercase tracking-wider bg-cyan-100 text-cyan-800">En cours</span>
+                  <span class="text-[10px] font-semibold text-[#10203E] mt-1 font-body whitespace-nowrap">1h 20m</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- job 2 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-12 gap-x-4 gap-y-3 xl:gap-3 items-start xl:items-center px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+              <div class="col-span-1 sm:col-span-3 xl:col-span-2 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Description</span>
+                <h4 class="text-sm text-slate-800 break-words">Gravure &amp; découpe</h4>
+              </div>
+              <div class="col-span-1 xl:col-span-2 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Machine</span>
+                <span class="text-sm xl:text-xs text-slate-800">TROTEC</span>
+              </div>
+              <div class="col-span-1 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projet</span>
+                <span class="text-sm xl:text-xs text-slate-800">Résin Less</span>
+              </div>
+              <div class="col-span-1 font-body text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Début</span>
+                10/11 14:15
+              </div>
+              <div class="col-span-1 font-body text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Fin</span>
+                10/11 15:45
+              </div>
+              <div class="col-span-2 font-body text-sm xl:text-xs">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Consommable &amp; Quantité</span>
+                <div class="flex items-center space-x-1.5">
+                  <span class="text-slate-800">PMMA 5-Braxes</span>
+                  <span class="text-slate-800">·</span>
+                  <span class="text-slate-800">0.5 m²</span>
+                </div>
+              </div>
+              <div class="col-span-1 font-body text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Opérateur</span>
+                Sylvain
+              </div>
+              <div class="col-span-1 xl:text-center text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                <span>Découpe laser</span>
+              </div>
+              <div class="col-span-1 col-start-2 row-start-1 sm:col-start-4 xl:col-start-auto xl:row-start-auto xl:sticky xl:right-0 xl:z-20 bg-white xl:pl-2 flex items-center justify-end xl:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] h-full py-1">
+                <span class="inline-flex whitespace-nowrap  items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#ffbe00]/50 text-amber-800">
+                  En attente
+                </span>
+              </div>
+            </div>
+
+            <!-- job 3 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-12 gap-x-4 gap-y-3 xl:gap-3 items-start xl:items-center px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+              <div class="col-span-1 sm:col-span-3 xl:col-span-2 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Description</span>
+                <h4 class="text-sm text-slate-800 break-words">Modélisation 3D raccord</h4>
+              </div>
+              <div class="col-span-1 xl:col-span-2 font-body text-sm xl:text-xs text-slate-400 italic">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans not-italic">Machine</span>
+                <span>Aucune</span>
+              </div>
+              <div class="col-span-1 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projet</span>
+                <span class="text-sm xl:text-xs text-slate-800">Autre projet</span>
+              </div>
+              <div class="col-span-1 font-body text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Début</span>
+                10/11 10:00
+              </div>
+              <div class="col-span-1 font-body text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Fin</span>
+                10/11 12:30
+              </div>
+              <div class="col-span-2 font-body text-sm xl:text-xs text-slate-400 italic">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans not-italic">Consommable &amp; Quantité</span>
+                <span>Aucun</span>
+              </div>
+              <div class="col-span-1 font-body text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Opérateur</span>
+                Jorge
+              </div>
+              <div class="col-span-1 xl:text-center text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                CAO
+              </div>
+              <div class="col-span-1 col-start-2 row-start-1 sm:col-start-4 xl:col-start-auto xl:row-start-auto xl:sticky xl:right-0 xl:z-20 bg-white xl:pl-2 flex items-center justify-end xl:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] h-full py-1">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
+                  Terminé
+                </span>
+              </div>
+            </div>
+
+            <!-- job 4 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-12 gap-x-4 gap-y-3 xl:gap-3 items-start xl:items-center px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+              <div class="col-span-1 sm:col-span-3 xl:col-span-2 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Description</span>
+                <h4 class="text-sm text-slate-800 break-words">Scan pièce</h4>
+              </div>
+              <div class="col-span-1 xl:col-span-2 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Machine</span>
+                <span class="text-sm xl:text-xs text-slate-800">GOSCAN</span>
+              </div>
+              <div class="col-span-1 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projet</span>
+                <span class="text-sm xl:text-xs text-slate-800">Autre projet</span>
+              </div>
+              <div class="col-span-1 font-body text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Début</span>
+                10/11 16:00
+              </div>
+              <div class="col-span-1 font-body text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Fin</span>
+                10/11 16:10
+              </div>
+              <div class="col-span-2 space-y-1 font-body text-sm xl:text-xs text-slate-400 italic">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans not-italic">Consommable &amp; Quantité</span>
+                <span>Aucun</span>
+              </div>
+              <div class="col-span-1 font-body text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Opérateur</span>
+                Hadrien
+              </div>
+              <div class="col-span-1 xl:text-center text-sm xl:text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                MO
+              </div>
+              <div class="col-span-1 col-start-2 row-start-1 sm:col-start-4 xl:col-start-auto xl:row-start-auto xl:sticky xl:right-0 xl:z-20 bg-white xl:pl-2 flex items-center justify-end xl:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] h-full py-1">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
+                  Terminé
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <job-modal></job-modal>
+  <export-modal></export-modal>
+
+  <script>
+    const jobModal = document.querySelector('job-modal');
+    const exportModal = document.querySelector('export-modal');
+
+    document
+      .getElementById('open-job-modal')
+      .addEventListener('click', () => jobModal.open());
+    document
+      .getElementById('open-export-modal')
+      .addEventListener('click', () => exportModal.open());
+
+    jobModal.addEventListener('job-submit', (event) => {
+      console.log('Job à créer:', event.detail);
+      jobModal.close();
+    });
+
+    exportModal.addEventListener('export-submit', (event) => {
+      console.log('Export à lancer:', event.detail);
+      exportModal.close();
+    });
+
+    const filters = exportModal.querySelectorAll('[data-select]');
+    const clientInput_export = filters[2];
+    clientInput_export.style.display = 'none';
+
+    const clientInput = document.getElementById('chp_client');
+    const chp_deb = document.getElementById('champ_debut');
+    const chp_fin = document.getElementById('champ_fin');
+    chp_deb.style.display = 'none';
+    chp_fin.style.display = 'none';
+    clientInput.style.display = 'none';
+
+
+//sidebar
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+const openSidebarButton = document.getElementById('open-sidebar');
+const closeSidebarButton = document.getElementById('close-sidebar');
+
+const desktopQuery = window.matchMedia('(min-width: 1024px)');
+
+const setSidebar = (open, { restoreFocus = false } = {}) => {
+
+    sidebar.classList.toggle('is-open', open);
+
+    sidebarOverlay.classList.toggle('hidden', !open);
+
+    document.body.classList.toggle('menu-open', open);
+
+    openSidebarButton.setAttribute('aria-expanded', String(open));
+
+    if (open) {
+        closeSidebarButton.focus();
+    } else if (restoreFocus) {
+        openSidebarButton.focus();
+    }
+};
+openSidebarButton.addEventListener('click', () => {
+    setSidebar(true);
+});
+
+closeSidebarButton.addEventListener('click', () => {
+    setSidebar(false, { restoreFocus: true });
+});
+
+sidebarOverlay.addEventListener('click', () => {
+    setSidebar(false, { restoreFocus: true });
+});
+
+sidebar.querySelectorAll('nav a').forEach((link) => {
+
+    link.addEventListener('click', () => {
+
+        if (!desktopQuery.matches) {
+            setSidebar(false);
+        }
+
+    });
+
+});
+
+document.addEventListener('keydown', (event) => {
+
+    if (
+        event.key === 'Escape' &&
+        sidebar.classList.contains('is-open')
+    ) {
+        setSidebar(false, { restoreFocus: true });
+    }
+
+});
+
+desktopQuery.addEventListener('change', (event) => {
+
+    if (event.matches) {
+        setSidebar(false);
+    }
+
+});
+
+  </script>
+
+</body>
+</html>

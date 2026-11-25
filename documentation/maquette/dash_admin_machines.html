@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html class="h-full bg-[#FAF8FF]" lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>dash-admin-machines</title>
+
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+ 
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="widgets/job-modal.js"></script>
+  <script src="widgets/export-modal.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          },
+          colors: {
+            primary: '#00677f',
+            'primary-container': '#00b1d8',
+            surface: '#FAF8FF',
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02)',
+            'card-hover': '0 10px 25px -3px rgba(0, 103, 127, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04)',
+            'modal': '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+<style>
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body.menu-open,
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  .custom-scroll::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+  }
+
+  .donut-segment {
+    transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+    cursor: pointer;
+  }
+
+  .donut-segment:hover {
+    stroke-width: 14;
+  }
+
+      input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+@media (max-width: 935.98px){
+  #sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s linear 0.25s;
+  }
+  #sidebar.is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #sidebar { transition: none !important; }
+}
+
+.machine-card:has(.machine-open:focus-visible) {
+  outline: 2px solid #00677f;
+  outline-offset: 2px;
+}
+
+.cell-label {
+  display: block;
+  margin-bottom: 0.125rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+@media (min-width: 640px) {
+  .cell-label { display: none; }
+}
+
+@media (pointer: coarse) {
+  .tap { min-height: 44px; }
+  .tap-square { min-height: 44px; min-width: 44px; }
+  input, select, textarea { font-size: 16px !important; }
+}
+
+</style>
+</head>
+<body class="min-h-full bg-[#FAF8FF] text-slate-800 antialiased font-sans flex flex-col min-[936px]:flex-row selection:bg-[#00b1d8]/20 selection:text-[#10203E]">  <!-- fond menu -->
+  <!-- fond menu -->
+  <div id="sidebar-overlay" class="fixed inset-0 z-40 hidden bg-slate-900/40 min-[936px]:hidden" aria-hidden="true"></div><!-- volet gauche -->
+
+  <aside id="sidebar" aria-label="Menu latéral" class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col justify-between overflow-y-auto border-r border-slate-200/80 bg-white p-6 pt-[max(1.5rem,env(safe-area-inset-top))] shadow-modal min-[936px]:sticky min-[936px]:top-0 min-[936px]:z-40 min-[936px]:h-screen min-[936px]:max-w-none min-[936px]:flex-shrink-0 min-[936px]:shadow-none">
+      <div class="space-y-8">
+          <div class="border-b border-slate-100 pb-2 pt-2">
+              <div class="flex items-start justify-between gap-3">
+                  <h2 class="min-w-0 text-lg font-bold leading-tight text-slate-900">
+                      Nom Admin
+                  </h2>
+
+                  <button id="close-sidebar" type="button" aria-label="Fermer le menu" class="tap-square -mr-2 -mt-1 inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 min-[936px]:hidden">
+                      <span class="material-symbols-outlined text-[22px]" aria-hidden="true">
+                          close
+                      </span>
+                  </button>
+              </div>
+              <button id="open-password-modal" type="button" class="mt-1 min-[936px]:mt-3 py-1.5 min-[936px]:py-0 inline-flex items-center gap-2 text-left text-sm font-semibold text-[#10203E] hover:text-[#004d5f] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10203E] rounded">
+                Modifier le mot de passe
+              </button>
+          </div>
+
+          <nav aria-label="Navigation principale" class="space-y-1.5">
+
+              <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  Dashboard
+              </a>
+              <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  Jobs
+                <span class="ml-2 min-[936px]:ml-auto inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ffbe00] text-xs font-bold text-white">1</span>
+              </a>
+              <a href="" aria-current="page" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  Projets
+              </a>
+              <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  Clients
+              </a>
+              <a href="" class="flex items-center rounded-2xl bg-[#10203E] px-4 py-3 text-sm font-bold text-white shadow-sm transition-all">
+                  Machines
+              </a>
+              <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  Consommables
+              </a>
+              <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  Collaborateurs
+              </a>
+          </nav>
+      </div>
+
+      <div class="mt-6 border-t border-slate-100 pt-6 min-[936px]:mt-0">
+          <a href="#deconnexion" class="group flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600">
+              <span>Déconnexion</span>
+          </a>
+      </div>
+
+  </aside>
+
+
+  <!-- contenu principal -->
+    <div class="flex-1 min-w-0 flex flex-col justify-between">
+
+      <!-- menu mobile -->
+      <header class="sticky top-0 z-30 flex items-center gap-2 border-b border-slate-200/80 bg-white/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur min-[936px]:hidden">
+
+          <button id="open-sidebar" type="button" aria-label="Ouvrir le menu" aria-controls="sidebar" aria-expanded="false" class="tap-square -ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+
+              <span class="material-symbols-outlined text-[24px]" aria-hidden="true">
+                  menu
+              </span>
+          </button>
+
+          <p class="text-base font-bold text-slate-900">
+              Machines
+          </p>
+
+      </header>
+
+      <main class="max-w-[1400px] w-full mx-auto px-6  py-8">
+        <div class="flex flex-col w-full">
+          <!-- recherche et filtres -->
+          <section class="mb-8">
+            <div class="max-w-2xl mx-auto">
+              <div class="relative flex items-center bg-surface-container-lowest rounded-full shadow-card border border-slate-200/80 px-4 py-2.5">
+                <span class="material-symbols-outlined text-outline text-[20px] pointer-events-none mr-3">search</span>
+                <input class="w-full text-body-md font-body-md text-on-surface placeholder:text-outline-variant bg-transparent border-0 focus:ring-0 focus:outline-none p-0" id="project-search" placeholder="Rechercher une machine" type="text">
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+      <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+          <div class="flex flex-wrap items-center gap-2">
+              <span class="mr-1 text-sm font-semibold text-slate-500">Trier par :</span>
+
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  <span>catégorie</span>
+                  <svg class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+              </button>
+
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  <span>visible</span>
+                  <svg class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+              </button>
+
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                  <span>date</span>
+                  <svg class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+              </button>
+          </div>
+
+          <button id="open-job-modal" type="button" class="inline-flex w-full items-center justify-center space-x-1.5 rounded-xl bg-[#10203E] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#004e60] active:scale-95 sm:w-auto">
+              <span class="material-symbols-outlined text-[16px]">add</span>
+              <span>Ajouter une machine</span>
+          </button>
+
+      </div>
+
+        <!-- machines -->
+        <section class="flex flex-col items-center md:items-start md:flex-row flex-wrap  gap-6">
+
+          <div class="machine-card flex w-full max-w-[280px] flex-none flex-col items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative cursor-pointer" tabindex="0" role="button" aria-label="Voir les détails de la machine MAKERBOT" data-machine-name="MAKERBOT" data-machine-description="Une description pour cette imprimante 3D de la marque MAKERBOT" data-machine-type="Impression 3D FDM" data-machine-image="../makerbot.png" data-hours-week="8 h 30" data-hours-month="34 h 15" data-hours-total="128 h 45">
+            <div class="absolute top-3 right-3 z-10 flex gap-2">
+                <button id="btn_modif" type="button" aria-label="Modifier le projet Resin Less" title="Modifier" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:text-[#10203E]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
+                </button>
+                <button id="btn_suppr" type="button" aria-label="Supprimer le projet Resin Less" title="Supprimer" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:text-[#ffbe00]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">delete</span>
+                </button>
+            </div>
+            <div class="w-full">
+              <img class="block w-full aspect-[2/3] object-cover rounded-2xl shadow-sm" src="../makerbot.png">
+            </div>
+            <div class="w-full text-center">
+              <span class="text-md text-slate-800">MAKERBOT</span>
+            </div>
+            <div class="w-full text-center">
+              <span class="text-sm text-slate-500">Une description pour cette imprimante 3D de la marque MAKERBOT</span>
+            </div>
+            <div class="w-full text-center">
+              <span class="text-xs text-slate-400">Impression 3D FDM - <span>12/11/2026</span></span>
+            </div>
+          </div>
+
+          <div class="machine-card flex w-full max-w-[280px] flex-none h-fit flex-col items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative cursor-pointer" tabindex="0" role="button" aria-label="Voir les détails de la machine TROTEC" data-machine-name="TROTEC" data-machine-description="Une description pour cette découpeuse laser de la marque TROTEC" data-machine-type="Découpe laser" data-machine-image="../trotec.png" data-hours-week="12 h 00" data-hours-month="48 h 30" data-hours-total="245 h 10">
+            <div class="absolute top-3 right-3 z-10 flex gap-2">
+                <button  type="button" aria-label="Modifier le projet Resin Less" title="Modifier" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:text-[#10203E]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
+                </button>
+                <button  type="button" aria-label="Supprimer le projet Resin Less" title="Supprimer" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:text-[#ffbe00]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">delete</span>
+                </button>
+            </div>
+            <div class="w-full">
+              <img class="block w-full aspect-[2/3] object-cover rounded-2xl shadow-sm" src="../trotec.png">
+            </div>
+            <div class="w-full text-center">
+              <span class="text-md text-slate-800">TROTEC</span>
+            </div>
+            <div class="w-full text-center">
+              <span class="text-sm text-slate-500">Une description pour cette découpeuse laser de la marque TROTEC</span>
+            </div>
+            <div class="w-full text-center">
+              <span class="text-xs text-slate-400">Découpe laser - <span>10/11/2026</span></span>
+            </div>
+          </div>
+
+          <div class="machine-card flex w-full max-w-[280px] flex-none h-full flex-col items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative cursor-pointer" tabindex="0" role="button" aria-label="Voir les détails de la machine GOSCAN" data-machine-name="GOSCAN" data-machine-description="Scanner professionnel GOSCAN" data-machine-type="Scanner" data-machine-image="../goscan.png" data-hours-week="5 h 45" data-hours-month="22 h 00" data-hours-total="96 h 20">
+            <div class="absolute top-3 right-3 z-10 flex gap-2">
+                <button  type="button" aria-label="Modifier le projet Resin Less" title="Modifier" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:text-[#10203E]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
+                </button>
+                <button  type="button" aria-label="Supprimer le projet Resin Less" title="Supprimer" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:text-[#ffbe00]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">delete</span>
+                </button>
+            </div>
+            <div class="w-full">
+              <img class="block w-full aspect-[2/3] object-cover rounded-2xl shadow-sm" src="../goscan.png">
+            </div>
+            <div class="w-full text-center">
+              <span class="text-md text-slate-800">GOSCAN</span>
+            </div>
+            <div class="w-full text-center">
+              <span class="text-md text-slate-800"></span>
+            </div>
+            <div class="w-full text-center">
+              <span class="text-xs text-slate-400">Scanner - <span>14/11/2026</span></span>
+            </div>
+          </div>
+
+        </section>
+    </div>
+  <!-- Fin du contenu principal -->
+
+      <dialog id="machine-details-modal" aria-labelledby="machine-details-title" class="w-[calc(100%-2rem)] max-w-2xl rounded-3xl border border-slate-200/90 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-950/50">
+        <div class="flex max-h-[92vh] flex-col overflow-hidden rounded-3xl">
+          <div class="flex items-center justify-between border-b border-slate-100 bg-white px-6 py-5 sm:px-8">
+            <h3 id="machine-details-name" class="mt-1 text-2xl font-bold text-slate-900"></h3>
+            <button id="close-machine-details-modal" type="button" aria-label="Fermer la modale" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+          <div class="custom-scroll overflow-y-auto p-6 font-body sm:p-8">
+            <div class="flex flex-col gap-6 sm:flex-row">
+              <img id="machine-details-image" class=" w-40 aspect-[2/3] rounded-2xl object-cover shadow-sm sm:h-64 sm:w-40" src="" alt="">
+              <div class="flex min-w-0 flex-1 flex-col gap-4">
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Description</p>
+                  <p id="machine-details-description" class="mt-1 text-sm leading-6 text-slate-700"></p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Catégorie</p>
+                  <p id="machine-details-type" class="mt-1 text-sm font-medium text-slate-700"></p>
+                </div>
+                <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 p-4">
+                  <div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Heures de fonctionnement</p>
+                    <p id="machine-details-hours" class="mt-1 text-xl font-bold text-slate-700"></p>
+                  </div>
+                  <label class="sr-only" for="machine-hours-period">Période des heures de fonctionnement</label>
+                  <select id="machine-hours-period" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-xs text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                    <option value="month">Ce mois</option>
+                    <option value="week">Cette semaine</option>
+                    <option value="total">Total</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="mt-8">
+              <div class="flex border-b border-slate-200" role="tablist" aria-label="Informations de la machine">
+                <button type="button" class="machine-tab border-b-2 border-[#10203E] px-4 py-3 text-sm font-bold text-[#10203E]" role="tab" aria-selected="true" data-tab="jobs">Jobs récents</button>
+                <button type="button" class="machine-tab border-b-2 border-transparent px-4 py-3 text-sm font-bold text-slate-500 hover:text-slate-800" role="tab" aria-selected="false" data-tab="consumables">Consommables</button>
+              </div>
+            <div id="machine-tab-jobs" class="py-5 text-sm text-slate-600" role="tabpanel">
+              <div class="mt-4">
+                <div class="space-y-3">
+                  <div class="grid grid-cols-2 gap-x-4 gap-y-3 items-start px-4 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative [&>div]:min-w-0">
+                    <div class="col-span-1">
+                      <span class="block mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Description</span>
+                      <h4 class="text-sm text-slate-900 break-words">Impression support châssis</h4>
+                    </div>
+                    <div class="col-span-1">
+                      <span class="block mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Machine</span>
+                      <span class="text-sm text-slate-800">MAKERBOT</span>
+                    </div>
+                    <div class="col-span-1">
+                      <span class="block mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Client</span>
+                      <span class="text-sm text-slate-800">Projet ouvert 20</span>
+                    </div>
+                    <div class="col-span-1">
+                      <span class="block mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projet</span>
+                      <span class="text-sm text-slate-800">Resin Less</span>
+                    </div>
+                    <div class="col-span-1 text-sm text-slate-800 whitespace-nowrap">
+                      <span class="block mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Début</span>
+                      09/11 10:00
+                    </div>
+                    <div class="col-span-1 text-sm text-slate-800 whitespace-nowrap">
+                      <span class="block mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Fin</span>
+                      09/11 15:00
+                    </div>
+                    <div class="col-span-2 space-y-1 font-body text-sm mr-1 whitespace-nowrap">
+                      <span class="block mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Consommable & Quantité</span>
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center space-x-1.5"><span class="text-slate-800 font-medium">PLA noir</span><span class="text-slate-800">·</span><span class="text-slate-800">20g</span></div>
+                        <span class="text-slate-800">0.5€</span>
+                      </div>
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center space-x-1.5"><span class="text-slate-800 font-medium">PLA orange</span><span class="text-slate-800">·</span><span class="text-slate-800">10g</span></div>
+                        <span class="text-slate-800">0.25€</span>
+                      </div>
+                    </div>
+                    <div class="col-span-1 font-body text-sm text-slate-700 font-medium">
+                      <span class="block mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Opérateur</span>
+                      Romain
+                    </div>
+                    <div class="col-span-1 text-sm text-slate-800">
+                      <span class="block mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                      <span>Impression 3D</span>
+                    </div>
+                    <div class="col-span-1 col-start-2 row-start-1 flex items-start justify-end gap-2 h-full py-1">
+                      <div class="flex flex-col items-center justify-center">
+                        <span class="inline-flex items-center space-x-1 px-2.5 py-1 whitespace-nowrap rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-100 text-cyan-800">En cours</span>
+                        <span class="text-[10px] font-semibold text-[#10203E] mt-1 font-body whitespace-nowrap">1h 20m</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+              <div id="machine-tab-consumables" class="hidden py-5 text-sm text-slate-600" role="tabpanel">
+                  <div class="mt-2 space-y-3">
+                    <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400 pb-1.5 border-b border-slate-100">
+                      <span>Intitulé</span>
+                      <div class="flex items-center space-x-6">
+                        <span>Catégorie</span>
+                        <span class="w-16 text-right">Quantité</span>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center justify-between py-2 border-b border-slate-100/70 font-body text-xs hover:bg-slate-50/80 rounded-lg px-1 transition-colors">
+                      <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="truncate">
+                          <span class="text-slate-900 block truncate">PLA Noir</span>
+                        </div>
+                      </div>
+                      <div class="flex items-center space-x-4 flex-shrink-0">
+                        <span class="text-xs font-medium text-slate-600">Impression 3D FDM</span>
+                        <span class="w-16 text-right text-slate-900 text-sm font-sans">20g</span>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center justify-between py-2 border-b border-slate-100/70 font-body text-xs hover:bg-slate-50/80 rounded-lg px-1 transition-colors">
+                      <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="truncate">
+                          <span class="text-slate-900 block truncate">PLA Orange</span>
+                        </div>
+                      </div>
+                      <div class="flex items-center space-x-4 flex-shrink-0">
+                        <span class="text-xs font-medium text-slate-600">Impression 3D FDM</span>
+                        <span class="w-16 text-right text-slate-900 text-sm font-sans">10g</span>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center justify-between py-2 border-b border-slate-100/70 font-body text-xs hover:bg-slate-50/80 rounded-lg px-1 transition-colors">
+                      <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="truncate">
+                          <span class="text-slate-900 block truncate">PETG</span>
+                        </div>
+                      </div>
+                      <div class="flex items-center space-x-4 flex-shrink-0">
+                        <span class="text-xs font-medium text-slate-600">Impression 3D FDM</span>
+                        <span class="w-16 text-right text-slate-900 text-sm font-sans">20g</span>
+                      </div>
+                    </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </dialog>
+
+      <dialog id="project-modal" aria-labelledby="project-modal-title" class="w-[90vw] md:w-fit rounded-3xl border border-slate-200/90 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-950/50">
+      <div class="flex max-h-[92vh] flex-col md:overflow-hidden rounded-3xl">
+        <div class="flex items-center justify-between border-b border-slate-100 bg-white px-6 py-5 sm:px-8">
+          <h2 id="project-modal-title" class="text-lg font-bold tracking-tight text-slate-900">Ajouter une machine</h2>
+          <button id="close-project-modal" type="button" aria-label="Fermer la modale" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <form id="project-form" class="custom-scroll space-y-6 p-6 font-body">
+            <div class="flex flex-col items-center md:flex-row flex-wrap  gap-6 p-6">
+                <button type="button" aria-label="Ajouter une image au projet" class="flex h-60 w-40 items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-100 text-4xl font-light text-slate-400 transition-colors hover:border-[#10203E]/40 hover:bg-slate-50 hover:text-[#10203E]">
+                    <span aria-hidden="true">+</span>
+                </button>
+                <div class="flex w-max max-w-full flex-col items-start">
+                    <div>
+                        <label for="project-title" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700 font-sans">Nom</label>
+                        <input id="project-title" name="title" type="text" required class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#10203E] focus:bg-white focus:ring-2 focus:ring-[#10203E]/15">
+                    </div>
+                    <div>
+                        <label for="project-description" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700 font-sans">Description</label>
+                        <textarea id="project-description" name="description" rows="4" class="w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#10203E] focus:bg-white focus:ring-2 focus:ring-[#10203E]/15"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="relative" data-project-autocomplete data-options="Impression 3D FDM|Découpe laser|Ajouter une catégorie">
+                        <label for="project-type" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700 font-sans">catégorie</label>
+                        <input id="project-type" name="type" type="text" autocomplete="off" required class=" rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm font-medium text-slate-800 outline-none transition-all hover:border-slate-300 focus:border-[#10203E] focus:bg-white focus:ring-2 focus:ring-[#10203E]/15">
+                        <div class="absolute bottom-full left-0 right-0 z-50 mb-1.5 hidden max-h-40 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-card" data-project-suggestions></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+          <div class="flex justify-end gap-3 border-t border-slate-100 pt-5">
+            <button id="cancel-project" type="button" class="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 ">Annuler</button>
+            <button type="submit" class="rounded-xl bg-[#10203E] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#00566a] focus:outline-none focus:ring-2 focus:ring-[#00b1d8] focus:ring-offset-2">Ajouter la machine</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog id="stop-job-modal" aria-labelledby="stop-job-modal-title" class="w-[calc(100%-2rem)] max-w-md rounded-3xl border border-slate-200 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-900/40">
+        <div class="p-6 sm:p-8">
+        <p class="mt-3 text-sm leading-6 text-slate-600"> Archiver la machine « Makerbot »</p>
+        <form id="stop-job-form" method="dialog" class="mt-6 flex justify-end gap-3">
+            <button type="submit" value="cancel" class="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50">Annuler</button>
+            <button type="submit" value="stop" class="rounded-xl bg-[#E2912C] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#c97818] focus:outline-none focus:ring-2 focus:ring-[#E2912C] focus:ring-offset-2">Archiver</button>
+        </form>
+        </div>
+    </dialog>
+
+    <dialog id="add-type-modal" aria-labelledby="add-type-modal-title" class="w-[calc(100%-2rem)] max-w-sm rounded-3xl border border-slate-200 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-950/50">
+      <div class="p-6 sm:p-8">
+        <form id="add-type-form" method="dialog" class="mt-6">
+          <label for="new-project-type" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">Nouvelle catégorie</label>
+          <input id="new-project-type" name="type" type="text" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#10203E] focus:bg-white focus:ring-2 focus:ring-[#10203E]/15">
+          <div class="mt-6 flex justify-end gap-3">
+            <button type="button" id="cancel-add-type" class="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50">Annuler</button>
+            <button type="submit" class="rounded-xl bg-[#10203E] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#00566a] focus:outline-none focus:ring-2 focus:ring-[#00b1d8] focus:ring-offset-2">Valider</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+<script>
+const projectModal = document.getElementById('project-modal');
+const projectForm = document.getElementById('project-form');
+const supprimModal = document.getElementById('stop-job-modal');
+const addTypeModal = document.getElementById('add-type-modal');
+const machineDetailsModal = document.getElementById('machine-details-modal');
+const machineHoursPeriod = document.getElementById('machine-hours-period');
+const machineDetailsHours = document.getElementById('machine-details-hours');
+let selectedMachineCard;
+
+document.getElementById('open-job-modal').addEventListener('click', () => projectModal.showModal());
+document.getElementById('btn_modif').addEventListener('click', () => projectModal.showModal());
+document.getElementById('btn_suppr').addEventListener('click', () => supprimModal.showModal());
+document.getElementById('close-project-modal').addEventListener('click', () => projectModal.close());
+document.getElementById('cancel-project').addEventListener('click', () => projectModal.close());
+document.getElementById('cancel-add-type').addEventListener('click', () => addTypeModal.close());
+document.getElementById('close-machine-details-modal').addEventListener('click', () => machineDetailsModal.close());
+
+const updateMachineHours = () => {
+  const period = machineHoursPeriod.value;
+  const hours = selectedMachineCard?.dataset[`hours${period.charAt(0).toUpperCase()}${period.slice(1)}`] || '0 h';
+  machineDetailsHours.textContent = hours;
+};
+
+document.querySelectorAll('.machine-card').forEach((card) => {
+  card.addEventListener('click', (event) => {
+    if (event.target.closest('button')) return;
+
+    selectedMachineCard = card;
+    document.getElementById('machine-details-image').src = card.dataset.machineImage;
+    document.getElementById('machine-details-image').alt = `Image de ${card.dataset.machineName}`;
+    document.getElementById('machine-details-name').textContent = card.dataset.machineName;
+    document.getElementById('machine-details-description').textContent = card.dataset.machineDescription;
+    document.getElementById('machine-details-type').textContent = card.dataset.machineType;
+    machineHoursPeriod.value = 'month';
+    updateMachineHours();
+    machineDetailsModal.showModal();
+  });
+
+  card.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      card.click();
+    }
+  });
+});
+
+machineHoursPeriod.addEventListener('change', updateMachineHours);
+
+document.querySelectorAll('.machine-tab').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.machine-tab').forEach((currentTab) => {
+      const isSelected = currentTab === tab;
+      currentTab.classList.toggle('border-[#10203E]', isSelected);
+      currentTab.classList.toggle('text-[#10203E]', isSelected);
+      currentTab.classList.toggle('border-transparent', !isSelected);
+      currentTab.classList.toggle('text-slate-500', !isSelected);
+      currentTab.setAttribute('aria-selected', String(isSelected));
+    });
+    document.getElementById('machine-tab-jobs').classList.toggle('hidden', tab.dataset.tab !== 'jobs');
+    document.getElementById('machine-tab-consumables').classList.toggle('hidden', tab.dataset.tab !== 'consumables');
+  });
+});
+
+machineDetailsModal.addEventListener('click', (event) => {
+  if (event.target === machineDetailsModal) machineDetailsModal.close();
+});
+
+projectModal.addEventListener('click', (event) => {
+  if (event.target === projectModal) {
+    projectModal.close();
+  }
+});
+
+addTypeModal.addEventListener('click', (event) => {
+  if (event.target === addTypeModal) {
+    addTypeModal.close();
+  }
+});
+
+document.querySelectorAll('[data-project-autocomplete]').forEach((container) => {
+  const input = container.querySelector('input');
+  const suggestions = container.querySelector('[data-project-suggestions]');
+  const options = container.dataset.options.split('|');
+
+  const renderSuggestions = () => {
+    const query = input.value.trim().toLowerCase();
+    const matches = options.filter((option) => option.toLowerCase().includes(query));
+    suggestions.innerHTML = matches.map((option) => `<button type="button" class="block w-full px-3.5 py-2 text-left text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#10203E]">${option}</button>`).join('');
+    suggestions.classList.toggle('hidden', matches.length === 0);
+    suggestions.querySelectorAll('button').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (button.textContent === 'Ajouter une catégorie') {
+          suggestions.classList.add('hidden');
+          addTypeModal.showModal();
+          return;
+        }
+
+        input.value = button.textContent;
+        suggestions.classList.add('hidden');
+      });
+    });
+  };
+
+  input.addEventListener('focus', renderSuggestions);
+  input.addEventListener('input', renderSuggestions);
+  input.addEventListener('blur', () => setTimeout(() => suggestions.classList.add('hidden'), 150));
+});
+
+projectForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  console.log('Projet à ajouter:', Object.fromEntries(new FormData(projectForm)));
+  projectModal.close();
+});
+
+//sidebar
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+const openSidebarButton = document.getElementById('open-sidebar');
+const closeSidebarButton = document.getElementById('close-sidebar');
+
+const desktopQuery = window.matchMedia('(min-width: 936px)');
+
+const setSidebar = (open, { restoreFocus = false } = {}) => {
+
+    sidebar.classList.toggle('is-open', open);
+
+    sidebarOverlay.classList.toggle('hidden', !open);
+
+    document.body.classList.toggle('menu-open', open);
+
+    openSidebarButton.setAttribute('aria-expanded', String(open));
+
+    if (open) {
+        closeSidebarButton.focus();
+    } else if (restoreFocus) {
+        openSidebarButton.focus();
+    }
+};
+openSidebarButton.addEventListener('click', () => {
+    setSidebar(true);
+});
+
+closeSidebarButton.addEventListener('click', () => {
+    setSidebar(false, { restoreFocus: true });
+});
+
+sidebarOverlay.addEventListener('click', () => {
+    setSidebar(false, { restoreFocus: true });
+});
+
+sidebar.querySelectorAll('nav a').forEach((link) => {
+
+    link.addEventListener('click', () => {
+
+        if (!desktopQuery.matches) {
+            setSidebar(false);
+        }
+
+    });
+
+});
+
+document.addEventListener('keydown', (event) => {
+
+    if (
+        event.key === 'Escape' &&
+        sidebar.classList.contains('is-open')
+    ) {
+        setSidebar(false, { restoreFocus: true });
+    }
+
+});
+
+desktopQuery.addEventListener('change', (event) => {
+
+    if (event.matches) {
+        setSidebar(false);
+    }
+
+});
+
+    </script>
+
+</body>
+</html>

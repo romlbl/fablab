@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html class="h-full bg-[#FAF8FF]" lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Maquette-admin-projet-search</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Space Grotesk"', 'sans-serif'],
+              body: ['"Inter"', 'sans-serif'],
+            },
+            colors: {
+              primary: '#00677f',
+              'primary-container': '#00b1d8',
+              surface: '#FAF8FF',
+            },
+            boxShadow: {
+              card: '0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02)',
+              'card-hover': '0 10px 25px -3px rgba(0, 103, 127, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04)',
+              modal: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+            },
+          },
+        },
+      };
+    </script>
+<style>
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body.menu-open,
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  .custom-scroll::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+  }
+
+  .donut-segment {
+    transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+    cursor: pointer;
+  }
+
+  .donut-segment:hover {
+    stroke-width: 14;
+  }
+
+      input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+@media (max-width: 1023.98px) {
+  #sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s linear 0.25s;
+  }
+  #sidebar.is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #sidebar { transition: none !important; }
+}
+
+.machine-card:has(.machine-open:focus-visible) {
+  outline: 2px solid #00677f;
+  outline-offset: 2px;
+}
+
+.cell-label {
+  display: block;
+  margin-bottom: 0.125rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+@media (min-width: 640px) {
+  .cell-label { display: none; }
+}
+
+@media (pointer: coarse) {
+  .tap { min-height: 44px; }
+  .tap-square { min-height: 44px; min-width: 44px; }
+  input, select, textarea { font-size: 16px !important; }
+}
+
+</style>
+  </head>
+
+  <body class="min-h-full bg-[#FAF8FF] text-slate-800 antialiased font-sans flex flex-col lg:flex-row selection:bg-[#00b1d8]/20 selection:text-[#10203E]">
+    <!-- fond menu -->
+    <div id="sidebar-overlay"class="fixed inset-0 z-40 hidden bg-slate-900/40 lg:hidden"aria-hidden="true"></div>
+    <!-- volet gauche-->
+    <aside id="sidebar" aria-label="Menu latéral"class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col justify-between overflow-y-auto border-r border-slate-200/80 bg-white p-6 pt-[max(1.5rem,env(safe-area-inset-top))] shadow-modal lg:sticky lg:top-0 lg:z-40 lg:h-screen lg:max-w-none lg:flex-shrink-0 lg:shadow-none">
+
+        <div class="space-y-8">
+            <div class="border-b border-slate-100 pb-2 pt-2">
+                <div class="flex items-start justify-between gap-3">
+                    <h2 class="min-w-0 text-lg font-bold leading-tight text-slate-900">
+                        Nom Admin
+                    </h2>
+
+                    <button id="close-sidebar" type="button" aria-label="Fermer le menu" class="tap-square -mr-2 -mt-1 inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 lg:hidden">
+                        <span class="material-symbols-outlined text-[22px]" aria-hidden="true">
+                            close
+                        </span>
+                    </button>
+                </div>
+                <button id="open-password-modal" type="button" class="mt-1 lg:mt-3 py-1.5 lg:py-0 inline-flex items-center gap-2 text-left text-sm font-semibold text-[#10203E] hover:text-[#004d5f] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10203E] rounded">
+                  Modifier le mot de passe
+                </button>
+            </div>
+
+            <nav aria-label="Navigation principale" class="space-y-1.5">
+
+                <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                    Dashboard
+                </a>
+                <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                    Jobs
+                  <span class="ml-2 lg:ml-auto inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ffbe00] text-xs font-bold text-white">1</span>
+                </a>
+                <a href="" aria-current="page" class="flex items-center rounded-2xl bg-[#10203E] px-4 py-3 text-sm font-bold text-white shadow-sm transition-all">
+                    Projets
+                </a>
+                <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                    Clients
+                </a>
+                <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                    Machines
+                </a>
+                <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                    Consommables
+                </a>
+                <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                    Collaborateurs
+                </a>
+            </nav>
+        </div>
+
+        <div class="mt-6 border-t border-slate-100 pt-6 lg:mt-0">
+            <a href="#deconnexion" class="group flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600">
+                <span>Déconnexion</span>
+            </a>
+        </div>
+
+    </aside>
+
+    <!--contenu principal -->
+    <div class="flex-1 min-w-0 flex flex-col justify-between">
+
+      <!-- menu mobile -->
+      <header class="sticky top-0 z-30 flex items-center gap-2 border-b border-slate-200/80 bg-white/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur lg:hidden">
+
+          <button id="open-sidebar" type="button" aria-label="Ouvrir le menu" aria-controls="sidebar" aria-expanded="false" class="tap-square -ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+
+              <span class="material-symbols-outlined text-[24px]" aria-hidden="true">
+                  menu
+              </span>
+          </button>
+
+          <p class="text-base font-bold text-slate-900">
+              Projets
+          </p>
+
+      </header>
+
+      <main class="max-w-[1400px] w-full mx-auto px-4 py-6 sm:px-6 md:py-8 ">
+        <h1 class="sr-only">Projets</h1>
+        <div class="flex flex-col w-full">
+
+          <section aria-label="Rechercher un projet" class="mb-6 sm:mb-8" role="search">
+            <div class="max-w-2xl mx-auto">
+              <div class="relative flex items-center bg-surface-container-lowest rounded-full shadow-card border border-slate-200/80 px-4 py-3 sm:py-2.5">
+                <span aria-hidden="true" class="material-symbols-outlined text-outline text-[20px] pointer-events-none mr-3">search</span>
+                <input aria-label="Rechercher un projet" class="w-full min-w-0 text-body-md font-body-md text-on-surface placeholder:text-outline-variant bg-transparent border-0 focus:ring-0 focus:outline-none p-0" id="project-search" placeholder="Rechercher un projet..." type="text">
+              </div>
+            </div>
+          </section>
+
+          <!-- filtre + bouton-->
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <div class="flex flex-wrap items-center gap-2 mb-4 sm:mb-8">
+              <span class="w-full sm:w-auto text-sm font-semibold text-slate-500 sm:mr-1">Trier par :</span>
+
+              <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                <span>Clients</span>
+                <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                <span>catégorie</span>
+                <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                <span>coût</span>
+                <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                <span>visible</span>
+                <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                <span>date</span>
+                <svg aria-hidden="true" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+            </div>
+
+            <button id="open-job-modal" type="button" class="order-first whitespace-nowrap sm:order-none w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 sm:py-2 rounded-xl text-sm font-semibold text-white bg-[#10203E] hover:bg-[#004e60] shadow-sm transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10203E] focus-visible:ring-offset-2">
+              <span class="material-symbols-outlined text-[16px]">add</span>
+              <span >Ajouter un Projet</span>
+            </button>
+          </div>
+
+          <!-- projets-->
+          <section aria-label="Liste des projets" class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,17rem),20rem))] justify-center sm:justify-start items-start gap-4 sm:gap-6">
+            <article class="relative self-start w-full max-w-xs min-h-[26rem] sm:min-h-[30rem] bg-white rounded-3xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:scale-105 hover:cursor-pointer transition-all duration-500 overflow-hidden flex flex-col group">
+              <div class="absolute top-3 right-3 z-10 flex gap-2">
+                <button id="btn_modif" type="button" aria-label="Modifier le projet Resin Less" title="Modifier" class="inline-flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:text-[#10203E]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
+                </button>
+                <button id="btn_suppr" type="button" aria-label="Supprimer le projet Resin Less" title="Supprimer" class="inline-flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:text-[#ffbe00]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">delete</span>
+                </button>
+              </div>
+              <div class="relative h-44 bg-slate-100 overflow-hidden">
+                <img alt="Prototypage Bras Robotique" class="w-full h-full object-cover" loading="lazy" src="../ballon.png">
+              </div>
+              <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-3">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">Resin Less</h3>
+                  <p class="text-xs text-slate-500 mt-2 leading-relaxed font-body">L’objectif principal est de trouver une solution permettant d’éliminer efficacement la résine des ballons de handball tout en réduisant le temps et les efforts nécessaires à cette opération</p>
+                </div>
+                <div class="flex justify-between items-center gap-2">
+                  <span>Valorisation : 15,30 €</span>
+                  <span class="text-xs text-slate-500">10/11/2026</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="relative self-start w-full max-w-xs min-h-[26rem] sm:min-h-[30rem] bg-white rounded-3xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:scale-105 hover:cursor-pointer transition-all duration-300 overflow-hidden flex flex-col group">
+              <div class="absolute top-3 right-3 z-10 flex gap-2">
+                <button type="button" aria-label="Modifier le projet Autre projet" title="Modifier" class="inline-flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50 hover:text-[#10203E]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
+                </button>
+                <button type="button" aria-label="Supprimer le projet Autre projet" title="Supprimer" class="inline-flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-rose-50 hover:text-rose-600">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">delete</span>
+                </button>
+              </div>
+              <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-3">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900 pr-[4.5rem]">Autre projet</h3>
+                  <p class="text-xs text-slate-500 mt-2 leading-relaxed font-body">Courte description du projet</p>
+                </div>
+                <div class="flex justify-between items-center gap-2">
+                  <span>Valorisation : 0 €</span>
+                  <span class="text-xs text-slate-500">12/11/2026</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="relative self-start w-full max-w-xs min-h-[26rem] sm:min-h-[30rem] bg-white rounded-3xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:scale-105 hover:cursor-pointer transition-all duration-300 overflow-hidden flex flex-col group">
+              <div class="absolute top-3 right-3 z-10 flex gap-2">
+                <button type="button" aria-label="Modifier le projet sans description" title="Modifier" class="inline-flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50 hover:text-[#10203E]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
+                </button>
+                <button type="button" aria-label="Supprimer le projet sans description" title="Supprimer" class="inline-flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-rose-50 hover:text-rose-600">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">delete</span>
+                </button>
+              </div>
+              <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-3">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900 pr-[4.5rem]">Projet sans description</h3>
+                </div>
+                <div class="flex justify-between items-center gap-2">
+                  <span>Valorisation : 0€</span>
+                  <span class="text-xs text-slate-500">15/11/2026</span>
+                </div>
+              </div>
+            </article>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <dialog id="stop-job-modal" aria-labelledby="stop-job-modal-title" class="w-[calc(100%-2rem)] max-w-md rounded-3xl border border-slate-200 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-900/40">
+        <div class="p-6 sm:p-8">
+        <p id="stop-job-modal-title" class="mt-3 text-sm leading-6 text-slate-600"> Archiver le projet « Résin Less »</p>
+        <form id="stop-job-form" method="dialog" class="mt-6 flex justify-end gap-3">
+            <button type="submit" value="cancel" class="flex-1 sm:flex-none rounded-xl bg-white px-4 py-3 sm:py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50">Annuler</button>
+            <button type="submit" value="stop" class="flex-1 sm:flex-none rounded-xl bg-[#E2912C] px-4 py-3 sm:py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#c97818] focus:outline-none focus:ring-2 focus:ring-[#E2912C] focus:ring-offset-2">Archiver</button>
+        </form>
+        </div>
+    </dialog>
+
+    <dialog id="add-type-modal" aria-labelledby="add-type-modal-title" class="w-[calc(100%-2rem)] max-w-sm rounded-3xl border border-slate-200 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-950/50">
+      <div class="p-6 sm:p-8">
+        <form id="add-type-form" method="dialog" class="mt-6">
+          <label id="add-type-modal-title" for="new-project-type" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">Nouvelle catégorie</label>
+          <input id="new-project-type" name="type" type="text" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#10203E] focus:bg-white focus:ring-2 focus:ring-[#10203E]/15">
+          <div class="mt-6 flex justify-end gap-3">
+            <button type="button" id="cancel-add-type" class="flex-1 sm:flex-none rounded-xl bg-white px-4 py-3 sm:py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50">Annuler</button>
+            <button type="submit" class="flex-1 sm:flex-none rounded-xl bg-[#10203E] px-4 py-3 sm:py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#00566a] focus:outline-none focus:ring-2 focus:ring-[#00b1d8] focus:ring-offset-2">Valider</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog id="project-modal" aria-labelledby="project-modal-title" class="w-[calc(100%-2rem)] max-w-2xl rounded-3xl border border-slate-200/90 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-950/50">
+      <div class="flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-3xl">
+        <div class="flex items-center justify-between gap-3 border-b border-slate-100 bg-white px-6 py-4 sm:px-8 sm:py-5">
+          <h2 id="project-modal-title" class="text-lg font-bold tracking-tight text-slate-900">Ajouter un projet</h2>
+          <button id="close-project-modal" type="button" aria-label="Fermer la modale" class="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 sm:mr-0 sm:h-9 sm:w-9">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <form id="project-form" class="custom-scroll space-y-5 overflow-y-auto overscroll-contain p-5 font-body sm:space-y-6 sm:p-8">
+          <div class="mx-auto w-full max-w-xs">
+            <button type="button" aria-label="Ajouter une image au projet" class="flex h-40 w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-100 text-4xl font-light text-slate-400 transition-colors hover:border-[#10203E]/40 hover:bg-slate-50 hover:text-[#10203E]">
+              <span aria-hidden="true">+</span>
+            </button>
+          </div>
+          <div>
+            <label for="project-title" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700 font-sans">Intitulé</label>
+            <input id="project-title" name="title" type="text" required class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#10203E] focus:bg-white focus:ring-2 focus:ring-[#10203E]/15">
+          </div>
+          <div>
+            <label for="project-description" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700 font-sans">Description</label>
+            <textarea id="project-description" name="description" rows="4" class="w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#10203E] focus:bg-white focus:ring-2 focus:ring-[#10203E]/15"></textarea>
+          </div>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="relative" data-project-autocomplete data-options="Mairie Douai|Fablab|Résin Less">
+              <label for="project-client" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700 font-sans">Client</label>
+              <input id="project-client" name="client" type="text" autocomplete="off" required class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-base sm:text-sm font-medium text-slate-800 outline-none transition-all hover:border-slate-300 focus:border-[#10203E] focus:bg-white focus:ring-2 focus:ring-[#10203E]/15">
+              <div class="absolute bottom-full left-0 right-0 z-50 mb-1.5 hidden max-h-40 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-card" data-project-suggestions></div>
+            </div>
+            <div class="relative" data-project-autocomplete data-options="PO|Interne|Externe|Ajouter une catégorie">
+              <label for="project-type" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700 font-sans">catégorie</label>
+              <input id="project-type" name="type" type="text" autocomplete="off" required class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-base sm:text-sm font-medium text-slate-800 outline-none transition-all hover:border-slate-300 focus:border-[#10203E] focus:bg-white focus:ring-2 focus:ring-[#10203E]/15">
+              <div class="absolute bottom-full left-0 right-0 z-50 mb-1.5 hidden max-h-40 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-card" data-project-suggestions></div>
+            </div>
+          </div>
+          <div class="flex justify-end gap-3 border-t border-slate-100 pt-5">
+            <button id="cancel-project" type="button" class="flex-1 sm:flex-none rounded-xl bg-white px-4 py-3 sm:py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 ">Annuler</button>
+            <button type="submit" class="flex-1 sm:flex-none rounded-xl bg-[#10203E] px-4 py-3 sm:py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#00566a] focus:outline-none focus:ring-2 focus:ring-[#00b1d8] focus:ring-offset-2">Ajouter le projet</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+<script>
+  const projectModal = document.getElementById('project-modal');
+  const projectForm = document.getElementById('project-form');
+  const supprimModal = document.getElementById('stop-job-modal');
+  const addTypeModal = document.getElementById('add-type-modal');
+
+  document.getElementById('open-job-modal').addEventListener('click', () => projectModal.showModal());
+  document.getElementById('btn_modif').addEventListener('click', () => projectModal.showModal());
+  document.getElementById('btn_suppr').addEventListener('click', () => supprimModal.showModal());
+  document.getElementById('close-project-modal').addEventListener('click', () => projectModal.close());
+  document.getElementById('cancel-project').addEventListener('click', () => projectModal.close());
+  document.getElementById('cancel-add-type').addEventListener('click', () => addTypeModal.close());
+
+  projectModal.addEventListener('click', (event) => {
+    if (event.target === projectModal) {
+      projectModal.close();
+    }
+  });
+
+  addTypeModal.addEventListener('click', (event) => {
+    if (event.target === addTypeModal) {
+      addTypeModal.close();
+    }
+  });
+
+  document.querySelectorAll('[data-project-autocomplete]').forEach((container) => {
+    const input = container.querySelector('input');
+    const suggestions = container.querySelector('[data-project-suggestions]');
+    const options = container.dataset.options.split('|');
+
+    const renderSuggestions = () => {
+      const query = input.value.trim().toLowerCase();
+      const matches = options.filter((option) => option.toLowerCase().includes(query));
+      suggestions.innerHTML = matches.map((option) => `<button type="button" class="block w-full px-3.5 py-2 text-left text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#10203E]">${option}</button>`).join('');
+      suggestions.classList.toggle('hidden', matches.length === 0);
+      suggestions.querySelectorAll('button').forEach((button) => {
+        button.addEventListener('click', () => {
+          if (button.textContent === 'Ajouter une catégorie') {
+            suggestions.classList.add('hidden');
+            addTypeModal.showModal();
+            return;
+          }
+
+          input.value = button.textContent;
+          suggestions.classList.add('hidden');
+        });
+      });
+    };
+
+    input.addEventListener('focus', renderSuggestions);
+    input.addEventListener('input', renderSuggestions);
+    input.addEventListener('blur', () => setTimeout(() => suggestions.classList.add('hidden'), 150));
+  });
+
+  projectForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    console.log('Projet à ajouter:', Object.fromEntries(new FormData(projectForm)));
+    projectModal.close();
+  });
+
+//sidebar
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+const openSidebarButton = document.getElementById('open-sidebar');
+const closeSidebarButton = document.getElementById('close-sidebar');
+
+const desktopQuery = window.matchMedia('(min-width: 1024px)');
+
+const setSidebar = (open, { restoreFocus = false } = {}) => {
+
+    sidebar.classList.toggle('is-open', open);
+
+    sidebarOverlay.classList.toggle('hidden', !open);
+
+    document.body.classList.toggle('menu-open', open);
+
+    openSidebarButton.setAttribute('aria-expanded', String(open));
+
+    if (open) {
+        closeSidebarButton.focus();
+    } else if (restoreFocus) {
+        openSidebarButton.focus();
+    }
+};
+openSidebarButton.addEventListener('click', () => {
+    setSidebar(true);
+});
+
+closeSidebarButton.addEventListener('click', () => {
+    setSidebar(false, { restoreFocus: true });
+});
+
+sidebarOverlay.addEventListener('click', () => {
+    setSidebar(false, { restoreFocus: true });
+});
+
+sidebar.querySelectorAll('nav a').forEach((link) => {
+
+    link.addEventListener('click', () => {
+
+        if (!desktopQuery.matches) {
+            setSidebar(false);
+        }
+
+    });
+
+});
+
+document.addEventListener('keydown', (event) => {
+
+    if (
+        event.key === 'Escape' &&
+        sidebar.classList.contains('is-open')
+    ) {
+        setSidebar(false, { restoreFocus: true });
+    }
+
+});
+
+desktopQuery.addEventListener('change', (event) => {
+
+    if (event.matches) {
+        setSidebar(false);
+    }
+
+});
+</script>
+  </body>
+</html>

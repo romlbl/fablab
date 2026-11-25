@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html class="h-full bg-[#FAF8FF]" lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Maquette-client_conso</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          },
+          colors: {
+            primary: '#00677f',
+            'primary-container': '#00b1d8',
+            surface: '#FAF8FF',
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02)',
+            'card-hover': '0 10px 25px -3px rgba(0, 103, 127, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04)',
+            'modal': '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+<style>
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body.menu-open,
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  .custom-scroll::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+  }
+
+  .donut-segment {
+    transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+    cursor: pointer;
+  }
+
+  .donut-segment:hover {
+    stroke-width: 14;
+  }
+
+      input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+@media (max-width: 935.98px){
+  #sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s linear 0.25s;
+  }
+  #sidebar.is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #sidebar { transition: none !important; }
+}
+
+.machine-card:has(.machine-open:focus-visible) {
+  outline: 2px solid #00677f;
+  outline-offset: 2px;
+}
+
+.cell-label {
+  display: block;
+  margin-bottom: 0.125rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+@media (min-width: 640px) {
+  .cell-label { display: none; }
+}
+
+@media (pointer: coarse) {
+  .tap { min-height: 44px; }
+  .tap-square { min-height: 44px; min-width: 44px; }
+  input, select, textarea { font-size: 16px !important; }
+}
+
+</style>
+</head>
+
+<body class="min-h-full bg-[#FAF8FF] text-slate-800 antialiased font-sans flex flex-col min-[936px]:flex-row selection:bg-[#00b1d8]/20 selection:text-[#10203E]">  <!-- fond menu -->
+<div id="sidebar-overlay"class="fixed inset-0 z-40 hidden bg-slate-900/40 min-[936px]:hidden"aria-hidden="true"></div>
+<!-- volet gauche -->
+<aside id="sidebar" aria-label="Menu latéral"class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col justify-between overflow-y-auto border-r border-slate-200/80 bg-white p-6 pt-[max(1.5rem,env(safe-area-inset-top))] shadow-modal min-[936px]:sticky min-[936px]:top-0 min-[936px]:z-40 min-[936px]:h-screen min-[936px]:max-w-none min-[936px]:flex-shrink-0 min-[936px]:shadow-none">
+
+    <div class="space-y-8">
+        <div class="border-b border-slate-100 pb-2 pt-2">
+            <div class="flex items-start justify-between gap-3">
+                    <h2 class="min-w-0 text-lg font-bold leading-tight text-slate-900">
+                        Nom client (ou PO)
+                    </h2>
+
+                <button id="close-sidebar" type="button" aria-label="Fermer le menu" class="tap-square -mr-2 -mt-1 inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 min-[936px]:hidden">
+                    <span class="material-symbols-outlined text-[22px]" aria-hidden="true">
+                        close
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav aria-label="Navigation principale" class="space-y-1.5">
+
+            <a href="#machines" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                Dashboard
+            </a>
+
+            <a href="#projets" aria-current="page" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                Projets
+            </a>
+
+            <a href="#consommables" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                Machines
+            </a>
+
+            <a href="#machines" class="flex items-center rounded-2xl bg-[#10203E] px-4 py-3 text-sm font-bold text-white shadow-sm transition-all">
+                Consommables
+            </a>
+
+        </nav>
+    </div>
+
+    <div class="mt-6 border-t border-slate-100 pt-6 min-[936px]:mt-0">
+        <a href="#deconnexion" class="group flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600">
+            <span>Déconnexion</span>
+        </a>
+    </div>
+
+</aside>
+
+<!-- contenu principal -->
+<div class="flex-1 min-w-0 flex flex-col justify-between">
+
+    <!-- menu mobile -->
+    <header class="sticky top-0 z-30 flex items-center gap-2 border-b border-slate-200/80 bg-white/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur min-[936px]:hidden">
+
+        <button id="open-sidebar" type="button" aria-label="Ouvrir le menu" aria-controls="sidebar" aria-expanded="false" class="tap-square -ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+
+            <span class="material-symbols-outlined text-[24px]" aria-hidden="true">
+                menu
+            </span>
+        </button>
+
+        <p class="text-base font-bold text-slate-900">
+            Consommables
+        </p>
+
+    </header>
+
+  <main class="max-w-[1400px] w-full mx-auto px-4 py-6 sm:px-6 md:py-8">
+    <h1 class="sr-only">Consommables</h1>
+    <div class="flex flex-col w-full">
+
+      <!-- recherche et filtre -->
+      <section aria-label="Rechercher un consommable" class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8" role="search">
+        <div class="relative flex w-full max-w-2xl items-center bg-surface-container-lowest rounded-full shadow-card border border-slate-200/80 px-4 py-3 sm:py-2.5">
+          <span aria-hidden="true" class="material-symbols-outlined text-outline text-[20px] pointer-events-none mr-3">search</span>
+          <input aria-label="Rechercher un consommable" class="w-full min-w-0 text-body-md font-body-md text-on-surface placeholder:text-outline-variant bg-transparent border-0 focus:ring-0 focus:outline-none p-0" id="project-search" placeholder="Rechercher un consommable" type="text">
+        </div>
+        <div class="flex items-center space-x-2 flex-shrink-0">
+          <select aria-label="Filtrer par catégorie" class="w-full sm:w-auto text-base sm:text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl py-1.5 px-2.5 text-slate-700 hover:bg-slate-100 focus:border-[#10203E] focus:ring-1 focus:ring-[#10203E] cursor-pointer appearance-none pr-7 relative">
+            <option selected="">Toutes les catégories</option>
+            <option>Aujourd'hui</option>
+            <option>Cette semaine</option>
+            <option>Ce mois-ci</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- consommables-->
+      <section aria-label="Liste des consommables" class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,15rem),280px))] justify-center sm:justify-start items-start gap-4 sm:gap-6">
+
+        <div class="flex w-full max-w-[280px] flex-col items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+          <div class="w-full">
+            <img alt="PLA noir" class="block w-full aspect-[2/3] object-cover rounded-2xl shadow-sm" loading="lazy" src="../pla_noir.png">
+          </div>
+          <div class="w-full text-center">
+            <span class="text-base text-slate-800">PLA NOIR</span>
+          </div>
+          <div class="w-full text-center">
+            <span class="text-sm text-slate-500">Filament pour imprimante 3D à dépôt de matière</span>
+          </div>
+          <div class="w-full text-center">
+            <span class="text-xs text-slate-400">Impression 3D FDM</span>
+          </div>
+        </div>
+
+        <div class="flex w-full max-w-[280px] flex-col items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+          <div class="w-full">
+            <img alt="PLA orange" class="block w-full aspect-[2/3] object-cover rounded-2xl shadow-sm" loading="lazy" src="../pla_orange.png">
+          </div>
+          <div class="w-full text-center">
+            <span class="text-base text-slate-800">PLA ORANGE</span>
+          </div>
+          <div class="w-full text-center">
+            <span class="text-sm text-slate-500">Filament pour imprimante 3D à dépôt de matière</span>
+          </div>
+          <div class="w-full text-center">
+            <span class="text-xs text-slate-400">Impression 3D FDM</span>
+          </div>
+        </div>
+
+        <div class="flex w-full max-w-[280px] h-full justify-around flex-col items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+          <div class="w-full text-center">
+            <span class="text-base text-slate-800">PMMA 5-Braxes</span>
+          </div>
+          <div class="w-full text-center">
+            <span class="text-sm text-slate-500">plaques pour découpeuse laser</span>
+          </div>
+          <div class="w-full text-center">
+            <span class="text-xs text-slate-400">Découpe laser</span>
+          </div>
+        </div>
+
+        <div class="flex w-full max-w-[280px] flex-col items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+          <div class="w-full text-center">
+            <span class="text-base text-slate-800">PETG</span>
+          </div>
+          <div class="w-full text-center">
+            <span class="text-sm text-slate-500">Filament pour imprimante 3D à dépôt de matière</span>
+          </div>
+          <div class="w-full text-center">
+            <span class="text-xs text-slate-400">Impression 3D FDM</span>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+</div>
+
+</body>
+<script>
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+const openSidebarButton = document.getElementById('open-sidebar');
+const closeSidebarButton = document.getElementById('close-sidebar');
+
+const desktopQuery = window.matchMedia('(min-width: 936px)');
+
+const setSidebar = (open, { restoreFocus = false } = {}) => {
+
+    sidebar.classList.toggle('is-open', open);
+
+    sidebarOverlay.classList.toggle('hidden', !open);
+
+    document.body.classList.toggle('menu-open', open);
+
+    openSidebarButton.setAttribute('aria-expanded', String(open));
+
+    if (open) {
+        closeSidebarButton.focus();
+    } else if (restoreFocus) {
+        openSidebarButton.focus();
+    }
+};
+openSidebarButton.addEventListener('click', () => {
+    setSidebar(true);
+});
+
+closeSidebarButton.addEventListener('click', () => {
+    setSidebar(false, { restoreFocus: true });
+});
+
+sidebarOverlay.addEventListener('click', () => {
+    setSidebar(false, { restoreFocus: true });
+});
+
+sidebar.querySelectorAll('nav a').forEach((link) => {
+
+    link.addEventListener('click', () => {
+
+        if (!desktopQuery.matches) {
+            setSidebar(false);
+        }
+
+    });
+
+});
+
+document.addEventListener('keydown', (event) => {
+
+    if (
+        event.key === 'Escape' &&
+        sidebar.classList.contains('is-open')
+    ) {
+        setSidebar(false, { restoreFocus: true });
+    }
+
+});
+
+desktopQuery.addEventListener('change', (event) => {
+
+    if (event.matches) {
+        setSidebar(false);
+    }
+
+});
+</script>
+</html>

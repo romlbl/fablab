@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html class="h-full bg-[#FAF8FF]" lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>dash-admin</title>
+
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="widgets/job-modal.js"></script>
+  <script src="widgets/export-modal.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          },
+          colors: {
+            primary: '#00677f',
+            'primary-container': '#00b1d8',
+            surface: '#FAF8FF',
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02)',
+            'card-hover': '0 10px 25px -3px rgba(0, 103, 127, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04)',
+            'modal': '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+    body.menu-open,
+    body:has(dialog[open]) {
+      overflow: hidden;
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+
+    .donut-segment {
+      transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+      cursor: pointer;
+    }
+    .donut-segment:hover {
+      stroke-width: 14;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      margin: 0;
+      appearance: none;
+    }
+    input[type="number"] {
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    @media (max-width: 1023.98px) {
+      #sidebar {
+        transform: translateX(-100%);
+        visibility: hidden;
+        transition: transform 0.25s ease, visibility 0s linear 0.25s;
+      }
+      #sidebar.is-open {
+        transform: none;
+        visibility: visible;
+        transition: transform 0.25s ease;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #sidebar { transition: none !important; }
+    }
+
+    .job-label {
+      display: block;
+      margin-bottom: 0.125rem;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      font-style: normal;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+    @media (min-width: 1280px) {
+      .job-label { display: none; }
+    }
+
+    @media (pointer: coarse) {
+      .tap { min-height: 44px; }
+      .tap-square { min-height: 44px; min-width: 44px; }
+      input, select, textarea { font-size: 16px !important; }
+    }
+  </style>
+</head>
+<body class="min-h-full bg-[#FAF8FF] text-slate-800 antialiased font-sans flex flex-col lg:flex-row selection:bg-[#00b1d8]/20 selection:text-[#10203E]">
+
+  <!-- fon menu -->
+  <div id="sidebar-overlay" class="fixed inset-0 z-40 hidden bg-slate-900/40 lg:hidden" aria-hidden="true"></div>
+
+  <!-- volet gauche -->
+<aside id="sidebar" aria-label="Menu latéral"class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col justify-between overflow-y-auto border-r border-slate-200/80 bg-white p-6 pt-[max(1.5rem,env(safe-area-inset-top))] shadow-modal lg:sticky lg:top-0 lg:z-40 lg:h-screen lg:max-w-none lg:flex-shrink-0 lg:shadow-none">
+
+    <div class="space-y-8">
+        <div class="border-b border-slate-100 pb-2 pt-2">
+            <div class="flex items-start justify-between gap-3">
+                <h2 class="min-w-0 text-lg font-bold leading-tight text-slate-900">
+                    Nom Admin
+                </h2>
+
+                <button id="close-sidebar" type="button" aria-label="Fermer le menu" class="tap-square -mr-2 -mt-1 inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 lg:hidden">
+                    <span class="material-symbols-outlined text-[22px]" aria-hidden="true">
+                        close
+                    </span>
+                </button>
+            </div>
+            <button id="open-password-modal" type="button" class="mt-1 lg:mt-3 py-1.5 lg:py-0 inline-flex items-center gap-2 text-left text-sm font-semibold text-[#10203E] hover:text-[#004d5f] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10203E] rounded">
+              Modifier le mot de passe
+            </button>
+        </div>
+
+        <nav aria-label="Navigation principale" class="space-y-1.5">
+
+            <a href="" class="flex items-center rounded-2xl bg-[#10203E] px-4 py-3 text-sm font-bold text-white shadow-sm transition-all">
+                Dashboard
+            </a>
+            <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                Jobs
+              <span class="ml-2 lg:ml-auto inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ffbe00] text-xs font-bold text-white">1</span>
+            </a>
+            <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                Projets
+            </a>
+            <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                Clients
+            </a>
+            <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                Machines
+            </a>
+            <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                Consommables
+            </a>
+            <a href="" class="flex items-center rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+                Collaborateurs
+            </a>
+        </nav>
+    </div>
+
+    <div class="mt-6 border-t border-slate-100 pt-6 lg:mt-0">
+        <a href="#deconnexion" class="group flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600">
+            <span>Déconnexion</span>
+        </a>
+    </div>
+
+</aside>
+
+  <!-- modifier le mot de passe -->
+  <dialog id="password-modal" aria-labelledby="password-modal-title" class="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-3xl border border-slate-200 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-900/40">
+    <div class="p-5 sm:p-8">
+      <div class="flex items-start justify-between gap-4">
+        <h2 id="password-modal-title" class="min-w-0 text-xl font-bold text-slate-900 sm:mt-2 sm:text-2xl">Modifier le mot de passe</h2>
+        <button id="close-password-modal" type="button" aria-label="Fermer la fenêtre" class="tap-square -mr-2 -mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-2xl leading-none text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <form id="password-form" class="mt-6 space-y-4">
+        <div>
+          <label for="current-password" class="mb-1.5 block text-sm font-semibold text-slate-700">Mot de passe actuel</label>
+          <input id="current-password" name="current-password" type="password" autocomplete="current-password" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-[#10203E] focus:bg-white focus:ring-1 focus:ring-[#10203E]" />
+        </div>
+        <div>
+          <label for="new-password" class="mb-1.5 block text-sm font-semibold text-slate-700">Nouveau mot de passe</label>
+          <input id="new-password" name="new-password" type="password" autocomplete="new-password" required minlength="8" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-[#10203E] focus:bg-white focus:ring-1 focus:ring-[#10203E]" />
+        </div>
+        <div>
+          <label for="confirm-password" class="mb-1.5 block text-sm font-semibold text-slate-700">Confirmation du mot de passe</label>
+          <input id="confirm-password" name="confirm-password" type="password" autocomplete="new-password" required minlength="8" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-[#10203E] focus:bg-white focus:ring-1 focus:ring-[#10203E]" />
+        </div>
+        <p id="password-error" class="hidden text-sm font-medium text-rose-600" role="alert"></p>
+        <button type="submit" class="tap w-full rounded-xl bg-[#10203E] px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#00566a] focus:outline-none focus:ring-2 focus:ring-[#00b1d8] focus:ring-offset-2">
+          Valider le changement
+        </button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- contenu principal -->
+  <div class="flex min-w-0 flex-1 flex-col justify-between">
+
+    <!-- menu mobile -->
+    <header class="sticky top-0 z-30 flex items-center gap-2 border-b border-slate-200/80 bg-white/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur lg:hidden">
+      <button id="open-sidebar" type="button" aria-label="Ouvrir le menu" aria-controls="sidebar" aria-expanded="false" class="tap-square -ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+        <span class="material-symbols-outlined text-[24px]" aria-hidden="true">menu</span>
+      </button>
+      <p class="text-base font-bold text-slate-900">Dashboard</p>
+    </header>
+
+    <main class="mx-auto w-full max-w-[1400px] space-y-10 px-4 py-6 sm:px-6 md:py-8">
+
+      <!-- indicateurs-->
+      <section aria-labelledby="stats-heading" data-purpose="analytics-overview" class="flex flex-col gap-8 xl:flex-row xl:justify-between xl:gap-6">
+        <h2 id="stats-heading" class="sr-only">Indicateurs et projets principaux</h2>
+        <div class="flex w-full flex-col items-start xl:w-[28rem] xl:flex-none">
+          <h3 class="mb-4 text-xl font-bold text-slate-900">Temps conception</h3>
+
+          <article class="flex w-full flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-card transition-all duration-300 hover:shadow-card-hover sm:p-6 xl:h-[28rem]">
+            <div class="md:flex md:items-center md:gap-8 xl:block">
+              <div class="relative my-4 flex items-center justify-center md:flex-none">
+                <svg aria-label="Diagramme temps conception" class="h-44 w-44 max-w-full flex-shrink-0 -rotate-90 transform" role="img" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" fill="none" r="48" stroke="#F1F5F9" stroke-width="12"></circle>
+                  <circle class="donut-segment text-emerald-500" cx="60" cy="60" fill="none" r="48" stroke="currentColor" stroke-dasharray="174.9 301.6" stroke-dashoffset="0" stroke-width="12"></circle>
+                  <circle class="donut-segment text-teal-400" cx="60" cy="60" fill="none" r="48" stroke="currentColor" stroke-dasharray="84.4 301.6" stroke-dashoffset="-174.9" stroke-width="12"></circle>
+                  <circle class="donut-segment text-cyan-400" cx="60" cy="60" fill="none" r="48" stroke="currentColor" stroke-dasharray="42.2 301.6" stroke-dashoffset="-259.3" stroke-width="12"></circle>
+                </svg>
+                <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <span class="text-xl text-slate-900">14h 45m</span>
+                </div>
+              </div>
+              <ul class="mt-4 space-y-2.5 font-body text-xs font-medium text-slate-600 md:mt-0 md:flex-1 xl:mt-4">
+                <li class="flex items-center justify-between gap-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-emerald-500"></span>
+                    <span>Modélisation 3D (CAO)</span>
+                  </div>
+                  <span class="whitespace-nowrap text-slate-900">8h 30m (58%)</span>
+                </li>
+                <li class="flex items-center justify-between gap-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-teal-400"></span>
+                    <span>Assemblage</span>
+                  </div>
+                  <span class="whitespace-nowrap text-slate-900">4h 15m (28%)</span>
+                </li>
+                <li class="flex items-center justify-between gap-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-cyan-400"></span>
+                    <span>Post traitement</span>
+                  </div>
+                  <span class="whitespace-nowrap text-slate-900">2h 00m (14%)</span>
+                </li>
+              </ul>
+            </div>
+            <div class="mt-6 border-t border-slate-100 pt-4">
+              <select aria-label="Période du temps conception" class="w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-base font-semibold text-slate-700 transition-colors hover:bg-slate-100/80 focus:border-[#10203E] focus:ring-1 focus:ring-[#10203E] sm:text-xs md:max-w-xs xl:max-w-none">
+                <option selected="">Cette Semaine</option>
+                <option>Ce mois</option>
+                <option>Cette année</option>
+              </select>
+            </div>
+          </article>
+        </div>
+
+        <!-- projets -->
+        <div class="flex min-w-0 flex-1 flex-col">
+          <h3 class="mb-4 text-xl font-bold text-slate-900">Projets principaux</h3>
+
+          <div class="flex flex-row flex-nowrap items-start gap-4 overflow-x-auto overflow-y-hidden overscroll-x-contain snap-x snap-mandatory scroll-pl-2 py-4 pl-2 custom-scroll sm:snap-none sm:gap-6">
+
+            <article class="group flex min-h-[26rem] w-[78%] max-w-xs flex-shrink-0 snap-start flex-col self-stretch overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-card transition-all duration-500 hover:scale-105 hover:cursor-pointer hover:shadow-card-hover sm:aspect-[2/3] sm:min-h-0 sm:w-full sm:self-start">
+              <div class="relative h-44 overflow-hidden bg-slate-100">
+                <img alt="Prototypage Bras Robotique" class="h-full w-full object-cover" loading="lazy" src="../ballon.png">
+              </div>
+              <div class="flex flex-1 flex-col justify-between p-5 sm:p-6">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">Resin Less</h3>
+                  <p class="mt-2 font-body text-xs leading-relaxed text-slate-500">L’objectif principal est de trouver une solution permettant d’éliminer efficacement la résine des ballons de handball tout en réduisant le temps et les efforts nécessaires à cette opération</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="group flex min-h-[26rem] w-[78%] max-w-xs flex-shrink-0 snap-start flex-col self-stretch sm:aspect-[2/3] sm:self-start overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-card transition-all duration-300 hover:scale-105 hover:cursor-pointer hover:shadow-card-hover sm:min-h-0 sm:w-full ">
+              <div class="flex flex-1 flex-col justify-between p-5 sm:p-6">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">Autre projet</h3>
+                  <p class="mt-2 font-body text-xs leading-relaxed text-slate-500">Courte description du projet</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="group flex min-h-[26rem] w-[78%] max-w-xs flex-shrink-0 snap-start flex-col self-stretch sm:aspect-[2/3] sm:min-h-0 sm:self-start overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-card transition-all duration-300 hover:scale-105 hover:cursor-pointer hover:shadow-card-hover  sm:w-full ">
+              <div class="flex flex-1 flex-col justify-between p-5 sm:p-6">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">Projet sans description</h3>
+                </div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- jobs -->
+      <section aria-labelledby="jobs-heading" data-purpose="jobs-execution-table" id="jobs-section">
+        <div class="space-y-4 pb-4">
+          <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div class="flex items-center space-x-3">
+              <h2 class="text-2xl font-bold tracking-tight text-slate-900" id="jobs-heading">Jobs</h2>
+            </div>
+            <div class="flex w-full items-center gap-2.5 md:w-auto">
+              <button id="open-export-modal" type="button" class="inline-flex flex-1 items-center justify-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10203E] md:flex-none md:py-2">
+                <span class="material-symbols-outlined text-[16px] text-slate-500">download</span>
+                <span>Exporter</span>
+              </button>
+              <button id="open-job-modal" type="button" class="inline-flex flex-1 items-center justify-center space-x-1.5 rounded-xl bg-[#10203E] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#004e60] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10203E] focus-visible:ring-offset-2 md:flex-none md:py-2">
+                <span class="material-symbols-outlined text-[16px]">add</span>
+                <span>Ajouter un job</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- filtres -->
+          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="w-full text-sm font-semibold text-slate-500 sm:mr-1 sm:w-auto">Trier par :</span>
+
+              <div class="relative" id="machine-filter">
+                <button id="machine-filter-button" type="button" aria-expanded="false" aria-controls="machine-filter-menu" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 sm:py-1">
+                  <span id="machine-filter-label">Machine</span>
+                  <svg aria-hidden="true" class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+
+                <div id="machine-filter-menu" class="hidden absolute left-0 top-full z-30 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+                  <div class="relative">
+                    <span class="material-symbols-outlined pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">search</span>
+                    <input id="machine-filter-search" type="search" placeholder="Rechercher une machine..." aria-label="Rechercher une machine" class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-base text-slate-700 outline-none focus:border-[#10203E] focus:ring-1 focus:ring-[#10203E] sm:text-sm">
+                  </div>
+                  <div id="machine-filter-suggestions" class="mt-2 space-y-1" role="listbox">
+                    <button type="button" data-machine="MAKERBOT" class="machine-suggestion block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#10203E]">MAKERBOT</button>
+                    <button type="button" data-machine="TROTEC" class="machine-suggestion block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#10203E]">TROTEC</button>
+                    <button type="button" data-machine="GOSCAN" class="machine-suggestion block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#10203E]">GOSCAN</button>
+                  </div>
+                  <p id="machine-filter-empty" class="hidden px-3 py-2 text-sm text-slate-400">Aucune machine trouvée</p>
+                </div>
+              </div>
+
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 sm:py-1">
+                <span>Clients</span>
+                <svg aria-hidden="true" class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 sm:py-1">
+                <span>Projet</span>
+                <svg aria-hidden="true" class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 sm:py-1">
+                <span>Type</span>
+                <svg aria-hidden="true" class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 sm:py-1">
+                <span>Consommable</span>
+                <svg aria-hidden="true" class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 sm:py-1">
+                <span>Tous les statut</span>
+                <svg aria-hidden="true" class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 sm:py-1">
+                <span>Toutes les dates</span>
+                <svg aria-hidden="true" class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- liste jobs -->
+        <div class="custom-scroll xl:overflow-x-auto">
+          <div class="space-y-3 xl:min-w-[1100px]">
+
+            <!-- En-têtes desktop -->
+            <div class="hidden xl:grid grid-cols-[repeat(13,minmax(0,1fr))] gap-3 px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 items-center whitespace-nowrap">
+                <div class="col-span-2">Description</div>
+                <div class="col-span-1">Machine</div>
+                <div class="col-span-1">Client</div> 
+                <div class="col-span-1">Projet</div>
+                <div class="col-span-1">Début</div>
+                <div class="col-span-1">Fin</div>
+                <div class="col-span-2">Consommable &amp; Quantité</div>
+                <div class="col-span-1">Opérateur</div>
+                <div class="col-span-1 text-center">Type</div>
+                <div class="col-span-1 xl:col-start-12 xl:sticky xl:right-14 xl:z-20 xl:w-20 bg-[#FAF8FF] xl:pl-2 text-center">Statut</div>
+                <div class="col-span-1 xl:col-start-13 xl:sticky xl:right-0 xl:z-20 xl:w-14 bg-[#FAF8FF] xl:pl-2 text-center">Action</div>
+            </div>
+
+            <!-- job 1 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-[repeat(13,minmax(0,1fr))] gap-x-4 gap-y-3 xl:gap-3 items-start xl:items-center px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+
+                <div class="col-span-1 sm:col-span-3 xl:col-span-2 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Description</span>
+                    <h4 class="text-sm text-slate-900 break-words">Impression support châssis</h4>
+                </div>
+
+                <div class="col-span-1 xl:col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Machine</span>
+                    <span class="text-xs text-slate-800 break-words">MAKERBOT</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Client</span>
+                    <span class="text-xs text-slate-800 break-words">Mairie Douai</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projet</span>
+                    <span class="text-xs text-slate-800 break-words">Resin Less</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Début</span>
+                    <span class="text-xs text-slate-800 whitespace-nowrap">09/11 10:00</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Fin</span>
+                    <span class="text-xs text-slate-800 whitespace-nowrap">09/11 15:00</span>
+                </div>
+
+                <div class="col-span-2 xl:col-span-2 min-w-0 space-y-1 font-body text-xs">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Consommable &amp; Quantité</span>
+
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-1.5 min-w-0">
+                            <span class="text-slate-800 font-medium">PLA noir</span>
+                            <span class="text-slate-800">·</span>
+                            <span class="text-slate-800 whitespace-nowrap">20g</span>
+                        </div>
+                        <span class="text-slate-800 whitespace-nowrap">0.5€</span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-1.5 min-w-0">
+                            <span class="text-slate-800 font-medium">PLA orange</span>
+                            <span class="text-slate-800">·</span>
+                            <span class="text-slate-800 whitespace-nowrap">10g</span>
+                        </div>
+                        <span class="text-slate-800 whitespace-nowrap">0.25€</span>
+                    </div>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Opérateur</span>
+                    <span class="font-body text-xs text-slate-700 font-medium break-words">Romain</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                    <span class="text-xs text-slate-800 xl:text-center block">Impression 3D</span>
+                </div>
+
+                <div class="col-span-1 col-start-2 row-start-1 sm:col-start-4 xl:col-start-12 xl:row-start-auto xl:sticky xl:right-14 xl:z-20 xl:w-20 bg-white xl:pl-2 flex flex-col items-end xl:items-center justify-center xl:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] h-full py-1">
+                  <div class="flex flex-col items-center justify-center" >
+                    <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-100 text-cyan-800">En cours</span>
+                    <span class="text-[10px] font-semibold text-[#10203E] mt-1 font-body whitespace-nowrap">1h 20m</span>
+                  </div>
+                </div>
+
+                <div class="col-span-2 sm:col-span-4 xl:col-span-1 xl:col-start-13 xl:sticky xl:right-0 xl:z-20 xl:w-14 bg-white xl:pl-2 flex items-center justify-center h-full">
+                    <span class="block xl:hidden mr-auto text-[11px] font-bold uppercase tracking-wider text-slate-400">Action</span>
+                    <button id="stop-job-button" type="button" aria-label="Arrêter le job" class="flex items-center justify-center text-[#E2912C] hover:text-[#ffbe00] transition-colors">
+                        <span class="material-symbols-outlined text-2xl" aria-hidden="true">stop_circle</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- job 2 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-[repeat(13,minmax(0,1fr))] gap-x-4 gap-y-3 xl:gap-3 items-start xl:items-center px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+
+                <div class="col-span-1 sm:col-span-3 xl:col-span-2 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Description</span>
+                    <h4 class="text-sm text-slate-800 break-words">Gravure &amp; découpe</h4>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Machine</span>
+                    <span class="text-xs text-slate-800">TROTEC</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Client</span>
+                    <span class="text-xs text-slate-800 break-words">Projet ouvert 20</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projet</span>
+                    <span class="text-xs text-slate-800 break-words">Résin Less</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Début</span>
+                    <span class="font-body text-xs text-slate-800 whitespace-nowrap">10/11 14:15</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Fin</span>
+                    <span class="font-body text-xs text-slate-800 whitespace-nowrap">10/11 15:45</span>
+                </div>
+
+                <div class="col-span-2 xl:col-span-2 min-w-0 font-body text-xs">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Consommable &amp; Quantité</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-1.5 min-w-0">
+                            <span class="text-slate-800 font-medium">PMMA 5-Braxes</span>
+                            <span class="text-slate-800">·</span>
+                            <span class="text-slate-800 whitespace-nowrap">0.5m²</span>
+                        </div>
+                        <span class="text-slate-800 whitespace-nowrap">15€</span>
+                    </div>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Opérateur</span>
+                    <span class="font-body text-xs text-slate-800">Romain</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                    <span class="text-xs text-slate-800 xl:text-center block">Découpe laser</span>
+                </div>
+
+                <div class="col-span-1 col-start-2 row-start-1 sm:col-start-4 xl:col-start-12 xl:row-start-auto xl:sticky xl:right-14 xl:z-20 xl:w-20 bg-white xl:pl-2 flex flex-col items-end xl:items-center justify-center xl:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] h-full py-1">
+                    <span class="inline-flex items-center px-2.5 py-1 whitespace-nowrap rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#ffbe00]/50 text-amber-800">En attente</span>
+                </div>
+
+                <div class="col-span-2 sm:col-span-4 xl:col-span-1 xl:col-start-13 xl:sticky xl:right-0 xl:z-20 xl:w-14 bg-white xl:pl-2 flex items-center justify-center h-full">
+                    <span class="block xl:hidden mr-auto text-[11px] font-bold uppercase tracking-wider text-slate-400">Action</span>
+                    <button id="edit_btn" type="button" aria-label="Modifier le job" class="flex items-center justify-center text-[#E2912C] hover:text-[#ffbe00] transition-colors">
+                        <span class="material-symbols-outlined text-2xl" aria-hidden="true">edit</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- job 3-->
+            <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-[repeat(13,minmax(0,1fr))] gap-x-4 gap-y-3 xl:gap-3 items-start xl:items-center px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+
+                <div class="col-span-1 sm:col-span-3 xl:col-span-2 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Description</span>
+                    <h4 class="text-sm text-slate-800 break-words">Modélisation 3D raccord</h4>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Machine</span>
+                    <span class="font-body text-xs text-slate-400 italic">Aucune</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Client</span>
+                    <span class="text-xs text-slate-800">Résin Less</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projet</span>
+                    <span class="text-xs text-slate-800">Autre projet</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Début</span>
+                    <span class="font-body text-xs text-slate-800 whitespace-nowrap">10/11 10:00</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Fin</span>
+                    <span class="font-body text-xs text-slate-800 whitespace-nowrap">10/11 12:30</span>
+                </div>
+
+                <div class="col-span-2 xl:col-span-2 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Consommable &amp; Quantité</span>
+                    <span class="font-body text-xs text-slate-400 italic">Aucun</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Opérateur</span>
+                    <span class="font-body text-xs text-slate-800">Romain</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                    <span class="text-xs text-slate-800 xl:text-center block">CAO</span>
+                </div>
+
+                <div class="col-span-1 col-start-2 row-start-1 sm:col-start-4 xl:col-start-12 xl:row-start-auto xl:sticky xl:right-14 xl:z-20 xl:w-20 bg-white xl:pl-2 flex items-end xl:items-center justify-center xl:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] h-full py-1">
+                    <span class="inline-flex items-center px-2.5 py-1 whitespace-nowrap rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">Terminé</span>
+                </div>
+                <div class="hidden xl:flex xl:col-span-1 xl:col-start-13 xl:sticky xl:right-0 xl:z-20 xl:w-14 bg-white xl:pl-2 h-full"></div>
+            </div>
+
+            <!-- job 4 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-[repeat(13,minmax(0,1fr))] gap-x-4 gap-y-3 xl:gap-3 items-start xl:items-center px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+
+                <div class="col-span-1 sm:col-span-3 xl:col-span-2 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Description</span>
+                    <h4 class="text-sm text-slate-800 break-words">Scan pièce</h4>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Machine</span>
+                    <span class="text-xs text-slate-800">GOSCAN</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Client</span>
+                    <span class="text-xs text-slate-800">Résine Less</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projet</span>
+                    <span class="text-xs text-slate-800">Autre projet</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Début</span>
+                    <span class="font-body text-xs text-slate-800 whitespace-nowrap">10/11 16:00</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Fin</span>
+                    <span class="font-body text-xs text-slate-800 whitespace-nowrap">10/11 16:10</span>
+                </div>
+
+                <div class="col-span-2 xl:col-span-2 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Consommable &amp; Quantité</span>
+                    <span class="font-body text-xs text-slate-400 italic">Aucun</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Opérateur</span>
+                    <span class="font-body text-xs text-slate-800">Romain</span>
+                </div>
+
+                <div class="col-span-1 min-w-0">
+                    <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                    <span class="text-xs text-slate-800 xl:text-center block">MO</span>
+                </div>
+
+                <div class="col-span-1 col-start-2 row-start-1 sm:col-start-4 xl:col-start-12 xl:row-start-auto xl:sticky xl:right-14 xl:z-20 xl:w-20 bg-white xl:pl-2 flex items-end xl:items-center justify-center xl:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] h-full py-1">
+                    <span class="inline-flex items-center px-2.5 py-1 whitespace-nowrap rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">Terminé</span>
+                </div>
+                <div class="hidden xl:flex xl:col-span-1 xl:col-start-13 xl:sticky xl:right-0 xl:z-20 xl:w-14 bg-white xl:pl-2 h-full"></div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<job-modal></job-modal>
+<export-modal></export-modal>
+
+<script>
+  const jobModal = document.querySelector('job-modal');
+  const exportModal = document.querySelector('export-modal');
+
+  document.getElementById('open-job-modal').addEventListener('click', () => jobModal.open());
+  document.getElementById('open-export-modal').addEventListener('click', () => exportModal.open());
+
+  jobModal.addEventListener('job-submit', (event) => {
+    console.log('Job à créer:', event.detail);
+    jobModal.close();
+  });
+
+  exportModal.addEventListener('export-submit', (event) => {
+    console.log('Export à lancer:', event.detail);
+    exportModal.close();
+  });
+
+  // sidebar
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  const openSidebarButton = document.getElementById('open-sidebar');
+  const closeSidebarButton = document.getElementById('close-sidebar');
+  const desktopQuery = window.matchMedia('(min-width: 1024px)');
+
+  const setSidebar = (open, { restoreFocus = false } = {}) => {
+    sidebar.classList.toggle('is-open', open);
+    sidebarOverlay.classList.toggle('hidden', !open);
+    document.body.classList.toggle('menu-open', open);
+    openSidebarButton.setAttribute('aria-expanded', String(open));
+
+    if (open) {
+      closeSidebarButton.focus();
+    } else if (restoreFocus) {
+      openSidebarButton.focus();
+    }
+  };
+
+  openSidebarButton.addEventListener('click', () => setSidebar(true));
+  closeSidebarButton.addEventListener('click', () => setSidebar(false, { restoreFocus: true }));
+  sidebarOverlay.addEventListener('click', () => setSidebar(false, { restoreFocus: true }));
+
+  sidebar.querySelectorAll('nav a').forEach((link) => {
+    link.addEventListener('click', () => {
+      if (!desktopQuery.matches) {
+        setSidebar(false);
+      }
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && sidebar.classList.contains('is-open')) {
+      setSidebar(false, { restoreFocus: true });
+    }
+  });
+
+  desktopQuery.addEventListener('change', (event) => {
+    if (event.matches) {
+      setSidebar(false);
+    }
+  });
+
+  // mdp
+  const passwordModal = document.getElementById('password-modal');
+  const passwordForm = document.getElementById('password-form');
+  const passwordError = document.getElementById('password-error');
+  const newPasswordInput = document.getElementById('new-password');
+  const confirmPasswordInput = document.getElementById('confirm-password');
+
+  document.getElementById('open-password-modal').addEventListener('click', () => {
+    if (sidebar.classList.contains('is-open')) {
+      setSidebar(false);
+    }
+    passwordForm.reset();
+    passwordError.classList.add('hidden');
+    passwordError.textContent = '';
+    passwordModal.showModal();
+  });
+
+  document.getElementById('close-password-modal').addEventListener('click', () => passwordModal.close());
+
+  passwordModal.addEventListener('click', (event) => {
+    if (event.target === passwordModal) {
+      passwordModal.close();
+    }
+  });
+
+  passwordForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    passwordError.classList.add('hidden');
+    passwordError.textContent = '';
+
+    if (newPasswordInput.value !== confirmPasswordInput.value) {
+      passwordError.textContent = 'Les deux nouveaux mots de passe ne correspondent pas.';
+      passwordError.classList.remove('hidden');
+      confirmPasswordInput.focus();
+      return;
+    }
+
+    console.log('Demande de changement de mot de passe envoyée.');
+    passwordModal.close();
+  });
+</script>
+
+</body>
+</html>

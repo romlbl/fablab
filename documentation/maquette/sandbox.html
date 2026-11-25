@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html class="h-full bg-[#FAF8FF]" lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Maquette</title>
+
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+ 
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          },
+          colors: {
+            primary: '#00677f',
+            'primary-container': '#00b1d8',
+            surface: '#FAF8FF',
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02)',
+            'card-hover': '0 10px 25px -3px rgba(0, 103, 127, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04)',
+            'modal': '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    .donut-segment {
+      transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+      cursor: pointer;
+    }
+    .donut-segment:hover {
+      stroke-width: 14;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      margin: 0;
+      appearance: none;
+    }
+
+    input[type="number"] {
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    @media (max-width: 935.98px) {
+      #sidebar {
+        transform: translateX(-100%);
+        visibility: hidden;
+        transition: transform 0.25s ease, visibility 0s linear 0.25s;
+      }
+
+      #sidebar.is-open {
+        transform: none;
+        visibility: visible;
+        transition: transform 0.25s ease;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #sidebar {
+        transition: none !important;
+      }
+    }
+
+    @media (pointer: coarse) {
+      .tap {
+        min-height: 44px;
+      }
+
+      .tap-square {
+        min-height: 44px;
+        min-width: 44px;
+      }
+
+      input,
+      select,
+      textarea {
+        font-size: 16px !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-full bg-[#FAF8FF] text-slate-800 antialiased font-sans flex flex-col min-[936px]:flex-row selection:bg-[#00b1d8]/20 selection:text-[#10203E]">
+  <!-- Navigation -->
+  <div id="sidebar-overlay" class="fixed inset-0 z-40 hidden bg-slate-900/40 min-[936px]:hidden" aria-hidden="true"></div>
+
+  <aside id="sidebar" aria-label="Menu latéral" class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col justify-between overflow-y-auto border-r border-slate-200/80 bg-white p-6 pt-[max(1.5rem,env(safe-area-inset-top))] shadow-modal min-[936px]:sticky min-[936px]:top-0 min-[936px]:z-40 min-[936px]:h-screen min-[936px]:max-w-none min-[936px]:flex-shrink-0 min-[936px]:shadow-none">
+    <div class="space-y-8">
+      <div class="border-b border-slate-100 pb-2 pt-2">
+        <div class="flex items-start justify-between gap-3">
+          <h2 class="min-w-0 text-lg font-bold leading-tight text-slate-900">Nom Admin</h2>
+          <button id="close-sidebar" type="button" aria-label="Fermer le menu" class="tap-square -mr-2 -mt-1 inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 min-[936px]:hidden">
+            <span class="material-symbols-outlined text-[22px]" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <button id="open-password-modal" type="button" class="mt-1 min-[936px]:mt-3 inline-flex items-center gap-2 py-1.5 text-left text-sm font-semibold text-[#10203E] hover:text-[#004d5f] transition-colors min-[936px]:py-0">
+          Modifier le mot de passe
+        </button>
+      </div>
+      <nav aria-label="Navigation principale" class="space-y-1.5">
+        <a class="flex items-center px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" href="#machines">
+          Dashboard
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" href="#projets">
+          Jobs
+          <span class="ml-2 min-[936px]:ml-auto inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ffbe00] text-xs font-bold text-white">1</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" href="#machines">
+          Projets
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-2xl text-sm font-bold bg-[#10203E] text-white shadow-sm transition-all"  href="#machines">
+          Clients
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" href="#machines">
+          Machines
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" href="#consommables">
+          Consommables
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" href="#consommables">
+          Collaborateurs
+        </a>
+      </nav>
+    </div>
+    <div class="mt-6 border-t border-slate-100 pt-6 min-[936px]:mt-0">
+      <a class="flex items-center justify-between w-full px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors group" href="#deconnexion">
+        <span>Déconnexion</span>
+      </a>
+    </div>
+  </aside>
+
+  <dialog id="password-modal" aria-labelledby="password-modal-title" class="w-[calc(100%-2rem)] max-w-md rounded-3xl border border-slate-200 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-900/40">
+    <div class="p-6 sm:p-8">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 id="password-modal-title" class="mt-2 text-2xl font-bold text-slate-900">Modifier le mot de passe</h2>
+        </div>
+        <button id="close-password-modal" type="button" aria-label="Fermer la fenêtre" class="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-2xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <form id="password-form" class="mt-6 space-y-4">
+        <div>
+          <label for="current-password" class="mb-1.5 block text-sm font-semibold text-slate-700">Mot de passe actuel</label>
+          <input id="current-password" name="current-password" type="password" autocomplete="current-password" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-[#10203E] focus:bg-white focus:ring-1 focus:ring-[#10203E]" />
+        </div>
+        <div>
+          <label for="new-password" class="mb-1.5 block text-sm font-semibold text-slate-700">Nouveau mot de passe</label>
+          <input id="new-password" name="new-password" type="password" autocomplete="new-password" required minlength="8" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-[#10203E] focus:bg-white focus:ring-1 focus:ring-[#10203E]" />
+        </div>
+        <div>
+          <label for="confirm-password" class="mb-1.5 block text-sm font-semibold text-slate-700">Confirmation du mot de passe</label>
+          <input id="confirm-password" name="confirm-password" type="password" autocomplete="new-password" required minlength="8" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-[#10203E] focus:bg-white focus:ring-1 focus:ring-[#10203E]" />
+        </div>
+        <p id="password-error" class="hidden text-sm font-medium text-rose-600" role="alert"></p>
+        <button type="submit" class="w-full rounded-xl bg-[#10203E] px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#00566a] focus:outline-none focus:ring-2 focus:ring-[#00b1d8] focus:ring-offset-2">
+          Valider le changement
+        </button>
+      </form>
+    </div>
+  </dialog>
+
+  <dialog id="client-modal" aria-labelledby="client-modal-title" class="w-[calc(100%-2rem)] max-w-lg rounded-3xl border border-slate-200 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-900/40">
+    <div class="p-6 sm:p-8">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 id="client-modal-title" class="text-2xl  font-bold text-slate-900">Ajouter un client</h2>
+        </div>
+        <button id="close-client-modal" type="button" aria-label="Fermer la fenêtre" class="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-2xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <form id="client-form" class="mt-6 space-y-4">
+        <div>
+          <label for="client-name" class="mb-1.5 block text-sm font-semibold text-slate-700">Nom</label>
+          <input id="client-name" name="name" type="text" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-[#10203E] focus:bg-white focus:ring-1 focus:ring-[#10203E]" />
+        </div>
+
+        <div class="relative" data-client-autocomplete data-options="PO|Externe|Interne|Ajouter un type">
+          <label for="client-type" class="mb-1.5 block text-sm font-semibold text-slate-700">Type</label>
+          <input id="client-type" name="type" type="text" autocomplete="off" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-[#10203E] focus:bg-white focus:ring-1 focus:ring-[#10203E]" />
+          <div class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden max-h-40 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-card" data-client-suggestions></div>
+        </div>
+
+        <div>
+          <label for="client-connection-code" class="mb-1.5 block text-sm font-semibold text-slate-700">Code de connexion</label>
+          <div class="flex gap-2">
+            <input id="client-connection-code" name="connectionCode" type="text" required class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-[#10203E] focus:bg-white focus:ring-1 focus:ring-[#10203E]" />
+            <button id="generate-client-code" type="button" class="rounded-xl border border-[#10203E] px-4 py-2.5 text-sm font-bold text-[#10203E] transition-colors hover:bg-[#10203E]/5">Générer</button>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 border-t border-slate-100 pt-5">
+          <button id="cancel-client" type="button" class="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50">Annuler</button>
+          <button type="submit" class="rounded-xl bg-[#10203E] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#00566a] focus:outline-none focus:ring-2 focus:ring-[#00b1d8] focus:ring-offset-2">Ajouter le client</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+
+  <!-- Contenu principal -->
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="sticky top-0 z-30 flex items-center gap-2 border-b border-slate-200/80 bg-white/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur min-[936px]:hidden">
+      <button id="open-sidebar" type="button" aria-label="Ouvrir le menu" aria-controls="sidebar" aria-expanded="false" class="tap-square -ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+        <span class="material-symbols-outlined text-[24px]" aria-hidden="true">menu</span>
+      </button>
+      <p class="text-base font-bold text-slate-900">Clients</p>
+    </header>
+
+    <main class="mx-auto w-full max-w-[1400px] space-y-10 px-4 py-6 sm:px-6 sm:py-8">
+
+        <section class="mb-8">
+            <div class="max-w-2xl mx-auto">
+            <div class="relative flex items-center bg-surface-container-lowest rounded-full shadow-card border border-slate-200/80 px-4 py-2.5">
+                <span class="material-symbols-outlined text-outline text-[20px] pointer-events-none mr-3">search</span>
+                <input class="w-full text-body-md font-body-md text-on-surface placeholder:text-outline-variant bg-transparent border-0 focus:ring-0 focus:outline-none p-0" id="project-search" placeholder="Rechercher un client" type="text">
+            </div>
+            </div>
+        </section>
+
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-sm font-semibold text-slate-500 mr-1">Trier par :</span>
+                <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-semibold bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors">
+                    <span>Type</span>
+                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <select class="text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl py-1.5 px-2.5 text-slate-600 hover:bg-slate-100 focus:border-[#10203E] focus:ring-1 focus:ring-[#10203E] cursor-pointer appearance-none pr-7 relative">
+                    <option selected="">Dépenses</option>
+                    <option>Croissant</option>
+                    <option>Décroissant</option>
+                </select>
+                <select class="text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl py-1.5 px-2.5 text-slate-600 hover:bg-slate-100 focus:border-[#10203E] focus:ring-1 focus:ring-[#10203E] cursor-pointer appearance-none pr-7 relative">
+                    <option selected="">Visible</option>
+                    <option>Archivés</option>
+                </select>
+                <select class="text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl py-1.5 px-2.5 text-slate-600 hover:bg-slate-100 focus:border-[#10203E] focus:ring-1 focus:ring-[#10203E] cursor-pointer appearance-none pr-7 relative">
+                    <option selected="">date</option>
+                    <option>Les plus récents</option>
+                    <option>Les plus anciens</option>
+                </select>
+            </div>
+
+            <button id="open-job-modal" type="button" class="tap inline-flex whitespace-nowrap items-center justify-center space-x-1.5 rounded-xl bg-[#10203E] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#004e60] active:scale-95">
+                <span class="material-symbols-outlined text-[16px]">add</span>
+                <span>Ajouter un  client</span>
+            </button>
+        </div>
+
+
+      <!-- Gestion des jobs -->
+      <section aria-labelledby="jobs-heading" data-purpose="jobs-execution-table" id="jobs-section">
+
+        <div class="space-y-4">
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+
+  </div>
+        </div>
+        <!-- Tableau des jobs -->
+        <div class="xl:overflow-x-auto custom-scroll -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div class="space-y-3 xl:min-w-[1100px]">
+            <div class="hidden xl:grid xl:grid-cols-[repeat(9,minmax(0,1fr))] gap-2 px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 items-center whitespace-nowrap [&>div]:min-w-0">
+              <div class="col-span-1">Nom</div>
+              <div class="col-span-1">Type</div>
+              <div class="col-span-1">Projets</div>
+              <div class="col-span-1">Dépenses totales</div>
+              <div class="col-span-1">Date création</div>
+              <div class="col-span-1">Code connexion</div>
+              <div class="col-span-2 sticky right-0 z-20 bg-[#FAF8FF] pl-2 flex items-center justify-end text-right shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.04)]">
+                <span>Actions</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-[repeat(9,minmax(0,1fr))] gap-x-4 gap-y-3 xl:gap-2 items-start xl:items-center px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+              <div class="col-span-1 sm:col-span-2 xl:col-span-1 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Nom</span>
+                <h4 class="text-sm text-slate-900">Résin Less </h4>
+              </div>
+              <div class="col-span-1 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                <span class="text-xs text-slate-800">PO</span>
+              </div>
+              <div class="col-span-1 sm:col-span-2 xl:col-span-1 min-w-0 space-y-1 font-body text-xs mr-1">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projets</span>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-1.5"><span class="text-slate-800 font-medium">Résin Less</span></div>
+                  <span class="text-slate-800">15,30€</span>
+                </div>
+              </div>
+              <div class="col-span-1 min-w-0 font-body text-xs text-slate-700 font-medium">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Dépenses totales</span>
+                <span>15,30€</span>
+              </div>
+              <div class="col-span-1 min-w-0 text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Date création</span>
+                <span>14/11/2026</span>
+              </div>
+              <div class="col-span-1 min-w-0 flex flex-col items-start justify-start sm:col-start-1 sm:row-start-4 xl:col-start-auto xl:row-start-auto xl:flex-row xl:items-center xl:justify-center">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Code connexion</span>
+                <span class="text-xs text-slate-800">20</span>
+              </div>
+              <div class="col-start-2 row-start-1 row-span-6 flex w-full flex-col items-center justify-start gap-2 sm:col-span-1 sm:col-start-4 sm:row-start-1 sm:row-span-6 xl:col-span-2 xl:col-start-auto xl:row-start-auto xl:row-span-1 xl:sticky xl:right-0 xl:z-20 xl:bg-white xl:pl-2 xl:justify-around xl:h-full xl:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)]">
+                <span class="block xl:hidden text-[11px] font-bold uppercase tracking-wider text-slate-400">Actions</span>
+                <div class="flex flex-col xl:w-full xl:flex-row  xl:justify-end gap-2">
+                <button type="button" class="open-modif inline-flex items-center justify-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-[#10203E] hover:bg-[#004e60] shadow-sm transition-all active:scale-95">
+                    Modifier
+                </button>
+                <button type="button" value="stop" class="btn-suppr rounded-xl bg-[#E2912C] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#c97818] focus:outline-none focus:ring-2 focus:ring-[#E2912C] focus:ring-offset-2">
+                    Archiver
+                </button>
+                </div>
+              </div>
+             </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-[repeat(9,minmax(0,1fr))] gap-x-4 gap-y-3 xl:gap-2 items-start xl:items-center px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
+              <div class="col-span-1 sm:col-span-2 xl:col-span-1 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Nom</span>
+                <h4 class="text-sm text-slate-900">Mairie Douai </h4>
+              </div>
+              <div class="col-span-1 min-w-0">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Type</span>
+                <span class="text-xs text-slate-800">Externe</span>
+              </div>
+              <div class="col-span-1 sm:col-span-2 xl:col-span-1 min-w-0 space-y-1 font-body text-xs mr-1">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Projets</span>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-1.5"><span class="text-slate-800 font-medium">Projet 1</span></div>
+                  <span class="text-slate-800">150€</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-1.5"><span class="text-slate-800 font-medium">Projet 2</span></div>
+                  <span class="text-slate-800">278€</span>
+                </div>
+              </div>
+              <div class="col-span-1 min-w-0 font-body text-xs text-slate-700 font-medium">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Dépenses totales</span>
+                <span>428€</span>
+              </div>
+              <div class="col-span-1 min-w-0 text-xs text-slate-800">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Date création</span>
+                <span>15/11/2026</span>
+              </div>
+              <div class="col-span-1 min-w-0 flex flex-col items-start justify-start sm:col-start-1 sm:row-start-4 xl:col-start-auto xl:row-start-auto xl:flex-row xl:items-center xl:justify-center">
+                <span class="block xl:hidden mb-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Code connexion</span>
+                <span class="text-xs text-slate-800">VX8PQBST</span>
+              </div>
+              <div class="col-start-2 row-start-1 row-span-6 flex w-full flex-col items-center justify-start gap-2 sm:col-span-1 sm:col-start-4 sm:row-start-1 sm:row-span-6 xl:col-span-2 xl:col-start-auto xl:row-start-auto xl:row-span-1 xl:sticky xl:right-0 xl:z-20  xl:bg-white xl:pl-2 xl:justify-around xl:h-full xl:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)]">
+                <span class="block xl:hidden text-[11px] font-bold uppercase tracking-wider text-slate-400">Actions</span>
+                <div class="flex flex-col xl:w-full xl:flex-row  xl:justify-end gap-2">
+                <button type="button" class="open-modif inline-flex items-center justify-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-[#10203E] hover:bg-[#004e60] shadow-sm transition-all active:scale-95">
+                    Modifier
+                </button>
+                <button type="button" value="stop" class="btn-suppr rounded-xl bg-[#E2912C] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#c97818] focus:outline-none focus:ring-2 focus:ring-[#E2912C] focus:ring-offset-2">
+                    Archiver
+                </button>
+                </div>
+              </div>
+             </div>
+
+
+          </div>
+        </div>
+      </section>
+      <!-- Fin jobs -->
+    </main>
+  </div>
+  <!-- Fin du contenu principal -->
+
+<dialog id="stop-job-modal" aria-labelledby="stop-job-modal-title" class="w-[calc(100%-2rem)] max-w-md rounded-3xl border border-slate-200 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-900/40">
+    <div class="p-6 sm:p-8">
+    <p class="mt-3 text-sm leading-6 text-slate-600"> Archiver le client "Résine Less"</p>
+    <form id="stop-job-form" method="dialog" class="mt-6 flex justify-end gap-3">
+        <button type="submit" value="cancel" class="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50">Annuler</button>
+        <button type="submit" value="stop" class="rounded-xl bg-[#E2912C] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#c97818] focus:outline-none focus:ring-2 focus:ring-[#E2912C] focus:ring-offset-2">Archiver</button>
+    </form>
+    </div>
+</dialog>
+
+<dialog id="add-client-type-modal" aria-labelledby="add-client-type-modal-title" class="w-[calc(100%-2rem)] max-w-sm rounded-3xl border border-slate-200 bg-white p-0 text-slate-800 shadow-modal backdrop:bg-slate-950/50">
+    <div class="p-6 sm:p-8">
+      <form id="add-client-type-form" method="dialog" class="mt-6">
+        <label for="new-client-type" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">Nouveau type</label>
+        <input id="new-client-type" name="type" type="text" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-[#10203E] focus:bg-white focus:ring-1 focus:ring-[#10203E]" />
+        <div class="mt-6 flex justify-end gap-3">
+          <button type="button" id="cancel-add-client-type" class="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50">Annuler</button>
+          <button type="submit" class="rounded-xl bg-[#10203E] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#00566a] focus:outline-none focus:ring-2 focus:ring-[#00b1d8] focus:ring-offset-2">Valider</button>
+        </div>
+      </form>
+    </div>
+</dialog>
+
+  <script>
+    // Volet gauche (tiroir sous 936px)
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const openSidebarButton = document.getElementById('open-sidebar');
+    const closeSidebarButton = document.getElementById('close-sidebar');
+    const desktopQuery = window.matchMedia('(min-width: 936px)');
+
+    const setSidebar = (open, { restoreFocus = false } = {}) => {
+      sidebar.classList.toggle('is-open', open);
+      sidebarOverlay.classList.toggle('hidden', !open);
+      document.body.classList.toggle('menu-open', open);
+      openSidebarButton.setAttribute('aria-expanded', String(open));
+
+      if (open) {
+        closeSidebarButton.focus();
+      } else if (restoreFocus) {
+        openSidebarButton.focus();
+      }
+    };
+
+    openSidebarButton.addEventListener('click', () => setSidebar(true));
+    closeSidebarButton.addEventListener('click', () => setSidebar(false, { restoreFocus: true }));
+    sidebarOverlay.addEventListener('click', () => setSidebar(false, { restoreFocus: true }));
+
+    sidebar.querySelectorAll('nav a').forEach((link) => {
+      link.addEventListener('click', () => {
+        if (!desktopQuery.matches) {
+          setSidebar(false);
+        }
+      });
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && sidebar.classList.contains('is-open')) {
+        setSidebar(false, { restoreFocus: true });
+      }
+    });
+
+    desktopQuery.addEventListener('change', (event) => {
+      if (event.matches) {
+        setSidebar(false);
+      }
+    });
+
+    const clientModal = document.getElementById('client-modal');
+    const clientForm = document.getElementById('client-form');
+    const clientCodeInput = document.getElementById('client-connection-code');
+    const clientTypeInput = document.getElementById('client-type');
+    const clientSuggestions = document.querySelector('[data-client-suggestions]');
+    const clientTypeOptions = document.querySelector('[data-client-autocomplete]').dataset.options.split('|');
+    const supprimModal = document.getElementById('stop-job-modal');
+    const addClientTypeModal = document.getElementById('add-client-type-modal');
+
+    document.querySelectorAll('.btn-suppr').forEach((button) => {
+      button.addEventListener('click', () => supprimModal.showModal());
+    });
+
+    document.getElementById('open-job-modal').addEventListener('click', () => {
+      clientForm.reset();
+      clientModal.showModal();
+    });
+
+    document.querySelectorAll('.open-modif').forEach((button) => {
+      button.addEventListener('click', () => {
+      clientForm.reset();
+      clientModal.showModal();
+      });
+    });
+
+    document.getElementById('close-client-modal').addEventListener('click', () => clientModal.close());
+    document.getElementById('cancel-client').addEventListener('click', () => clientModal.close());
+    document.getElementById('cancel-add-client-type').addEventListener('click', () => addClientTypeModal.close());
+
+    clientModal.addEventListener('click', (event) => {
+      if (event.target === clientModal) clientModal.close();
+    });
+
+    addClientTypeModal.addEventListener('click', (event) => {
+      if (event.target === addClientTypeModal) addClientTypeModal.close();
+    });
+
+    const renderClientSuggestions = () => {
+      const query = clientTypeInput.value.trim().toLocaleLowerCase();
+      clientSuggestions.replaceChildren();
+      clientTypeOptions
+        .filter((option) => option.toLocaleLowerCase().includes(query))
+        .forEach((option) => {
+          const suggestion = document.createElement('button');
+          suggestion.type = 'button';
+          suggestion.className = 'block w-full px-3.5 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#10203E]';
+          suggestion.textContent = option;
+          suggestion.addEventListener('click', () => {
+            if (option === 'Ajouter un type') {
+              clientSuggestions.classList.add('hidden');
+              addClientTypeModal.showModal();
+              return;
+            }
+
+            clientTypeInput.value = option;
+            clientSuggestions.classList.add('hidden');
+          });
+          clientSuggestions.append(suggestion);
+        });
+      clientSuggestions.classList.toggle('hidden', !clientSuggestions.children.length);
+    };
+
+    clientTypeInput.addEventListener('focus', renderClientSuggestions);
+    clientTypeInput.addEventListener('input', renderClientSuggestions);
+    clientTypeInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && clientSuggestions.firstElementChild) {
+        event.preventDefault();
+        clientSuggestions.firstElementChild.click();
+      }
+      if (event.key === 'Escape') clientSuggestions.classList.add('hidden');
+    });
+
+    document.getElementById('generate-client-code').addEventListener('click', () => {
+      const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      const values = new Uint32Array(8);
+      crypto.getRandomValues(values);
+      clientCodeInput.value = Array.from(values, (value) => characters[value % characters.length]).join('');
+    });
+
+    clientForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      console.log('Client à ajouter:', Object.fromEntries(new FormData(clientForm)));
+      clientModal.close();
+    });
+  </script>
+
+
+</body>
+</html>
