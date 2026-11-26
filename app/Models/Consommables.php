@@ -33,7 +33,7 @@ class Consommables extends Model
     {
         return $this->belongsToMany(
             Jobs::class,
-            'job_consommables',
+            'jobs_consommables',
             'id_consommable',
             'id_job'
         )->withPivot(['id', 'quantite', 'cout', 'cout_tot']);

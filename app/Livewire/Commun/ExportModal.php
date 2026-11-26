@@ -3,7 +3,6 @@
 namespace App\Livewire\Commun;
 
 use Livewire\Component;
-use Livewire\Attributes\Reactive;
 use App\Models\Jobs;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -13,95 +12,22 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportModal extends Component
 {
-    #[Reactive]
+    public array $export = [];
+    public array $filtres = [];
     public array $items = [];
 
-    #[Reactive]
-    public array $filtres = [];
-
-    public array $export = [];
-
-    public array $correspondanceColonnes = [
-        'projets' => 'id_projet',
-        'machines' => 'id_machine',
-        'types' => 'id_type_travail',
-        'client' => 'id_client',
-        'operateur' => 'id_operateur',
-    ];
-
-    public function mount(){
-        $this->initialiserExport();
+    public function mount($filtres, $items){
+        $this->filtres = $filtres;
+        $this->items = $items;
+        $this->export = array_merge($this->filtres, ['format' => 'xlsx']);
     }
 
-    public function updatedFiltres(){
-        $this->initialiserExport();
-    }
-
-    public function initialiserExport(){
-        $aDates = !empty($this->filtres['dateDebut']) || !empty($this->filtres['dateFin']);
-
-        $this->export = array_merge(
-            $this->filtres,
-            [
-                'dateDebut' => $this->filtres['dateDebut'] ?? null,
-                'dateFin'   => $this->filtres['dateFin'] ?? null,
-                'format'    => $this->export['format'] ?? 'xlsx',
-            ]
-        );
-    }
-
-
-    public function requeteJobs() {
-        $role = session('auth_role');
-        $idUser = session('auth_user_id');
-
-        //on trouve les jobs
-        $requete = Jobs::query()->with([
-            'machine.categorie',
-            'client',
-            'projet',
-            'operateur',
-            'typeTravail',
-            'jobConsommables.consommable',
-        ]);
-
-        if (in_array($role, ['client', 'admin'], true)) {
-            $requete->where($role === 'client' ? 'id_client' : 'id_operateur', $idUser);
-        }
-
-        foreach ($this->export as $colonne => $valeur) {
-            if ($valeur === null || $valeur === '' || $valeur === []) {
-                continue;
-            }
-            if ($colonne === 'consommables') {
-                $idsConsommables = is_array($valeur) ? $valeur : [$valeur];
-                $requete->whereHas('jobConsommables', function ($query) use ($idsConsommables) {
-                    $query->whereIn('id_consommable', $idsConsommables);
-                });
-            } elseif ($colonne === 'dateDebut') {
-                $requete->whereDate('debut', '>=', $valeur);
-            } elseif ($colonne === 'dateFin') {
-                $requete->whereDate('fin', '<=', $valeur);
-            } elseif ($colonne === 'statut') {
-                $selectionStatut = ["en attente", "en cours", "Terminé", "arreté"];
-                foreach ($selectionStatut as $key => $statut) {
-                    if (!in_array($key, $valeur)) {
-                        unset($selectionStatut[$key]);
-                    }
-                }
-                $requete->whereIn('status', $selectionStatut);
-            }elseif ($colonne === 'categories') {
-                $idsCategories = is_array($valeur) ? $valeur : [$valeur];
-                $requete->whereHas('machine.categorie', function ($query) use ($idsCategories) {
-                    $query->whereIn('id', $idsCategories);
-                });
-            } elseif (isset($this->correspondanceColonnes[$colonne])) {
-                $ids = is_array($valeur) ? $valeur : [$valeur];
-                $requete->whereIn($this->correspondanceColonnes[$colonne], $ids);
-            }
-        }
-
-        return $requete;
+    public function requeteJobs()
+    {
+        return Jobs::avecDetails()
+            ->visiblePar(session('auth_role'), session('auth_user_id'))
+            ->filtrer($this->export)
+            ->latest('debut');
     }
 
     public function formaterLignes($jobs) {
@@ -157,7 +83,7 @@ class ExportModal extends Component
                         'quantite'=> $consommableJob->quantite ?? '',
                     ];
                     if ($role === 'admin') {
-                        $ligne['cout'] = $consommableJob->cout ?? '';   
+                        $ligne['cout'] = $consommableJob->cout_tot ?? '';   
                     }  
                     $ligne['projet' ] = $estPremiereLigne ? ($job->projet?->nom ?? '') : '';
                     if ($role === 'admin') {

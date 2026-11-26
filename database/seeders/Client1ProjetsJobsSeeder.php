@@ -94,7 +94,7 @@ class Client1ProjetsJobsSeeder extends Seeder
         // Jobs du Projet A
         DB::table('jobs')->insert([
             'id_type' => $typeCollaborateurId,
-            'status' => 'termine',
+            'status' => 'terminé',
             'id_operateur' => $operateur1Id,
             'id_client' => $client1Id,
             'id_projet' => $projetA,
@@ -109,7 +109,7 @@ class Client1ProjetsJobsSeeder extends Seeder
 
         $jobA2 = DB::table('jobs')->insertGetId([
             'id_type' => $typeMachineId,
-            'status' => 'termine',
+            'status' => 'terminé',
             'id_operateur' => $operateur2Id,
             'id_client' => $client1Id,
             'id_projet' => $projetA,
@@ -125,7 +125,7 @@ class Client1ProjetsJobsSeeder extends Seeder
         // Jobs du Projet B
         DB::table('jobs')->insert([
             'id_type' => $typeCollaborateurId,
-            'status' => 'termine',
+            'status' => 'terminé',
             'id_operateur' => $operateur1Id,
             'id_client' => $client1Id,
             'id_projet' => $projetB,
@@ -140,7 +140,7 @@ class Client1ProjetsJobsSeeder extends Seeder
 
         $jobB2 = DB::table('jobs')->insertGetId([
             'id_type' => $typeMachineId,
-            'status' => 'en_cours',
+            'status' => 'en cours',
             'id_operateur' => $operateur2Id,
             'id_client' => $client1Id,
             'id_projet' => $projetB,
@@ -156,7 +156,7 @@ class Client1ProjetsJobsSeeder extends Seeder
         // Jobs du Projet C
         DB::table('jobs')->insert([
             'id_type' => $typeCollaborateurId,
-            'status' => 'planifie',
+            'status' => 'en attente',
             'id_operateur' => $operateur1Id,
             'id_client' => $client1Id,
             'id_projet' => $projetC,
@@ -171,7 +171,7 @@ class Client1ProjetsJobsSeeder extends Seeder
 
         DB::table('jobs')->insert([
             'id_type' => $typeMachineId,
-            'status' => 'planifie',
+            'status' => 'en attente',
             'id_operateur' => $operateur2Id,
             'id_client' => $client1Id,
             'id_projet' => $projetC,

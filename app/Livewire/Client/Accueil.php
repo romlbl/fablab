@@ -11,6 +11,7 @@ use App\Models\Type_travail;
 use App\Models\Projets;
 use App\Models\Consommables;
 use App\Models\Categories;
+use App\Models\Jobs;
  
 class Accueil extends Component
 {
@@ -235,6 +236,7 @@ class Accueil extends Component
         'dateDebut' => null,
         'dateFin' => null,
     ];
+
     public function initItems()
     {
         $this->machines = Machines::all()->pluck('nom', 'id')->toArray();
@@ -242,7 +244,7 @@ class Accueil extends Component
         $this->conception = Type_travail::all()->pluck('nom', 'id')->toArray();
         $this->consommables = Consommables::all()->pluck('nom', 'id')->toArray();
         $this->categories = Categories::all()->pluck('nom', 'id')->toArray();
-        $this->statut = ["En attente", "En cours", "Terminé", "Arreté"]; 
+        $this->statut = Jobs::STATUTS; 
 
     }
 

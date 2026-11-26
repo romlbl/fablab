@@ -79,7 +79,7 @@
         </div>
 
         <div x-show="modalExport" x-cloak x-transition.opacity @click.self="modalExport = false" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">           
-            <livewire:commun.export-modal :filtres="$filtres" :items="$items"/>
+            <livewire:commun.export-modal :filtres="$filtres" :items="$items" :key="'export-' . md5(json_encode($filtres))" />
         </div>
 
         <div x-show="modalAjout" x-cloak @click.self="modalAjout = false" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">

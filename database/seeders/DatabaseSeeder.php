@@ -350,7 +350,7 @@ class DatabaseSeeder extends Seeder
         // 11. Jobs (cohérence machine <-> consommable)
         $jobImpressionFdm = DB::table('jobs')->insertGetId([
             'id_type' => $typeMachineId,
-            'status' => 'termine',
+            'status' => 'terminé',
             'id_operateur' => $collabEtudiant,
             'id_client' => $clientNord,
             'id_projet' => $projetExterne,
@@ -392,7 +392,7 @@ class DatabaseSeeder extends Seeder
         ]);
         $jobScanner = DB::table('jobs')->insertGetId([
             'id_type' => $typeMachineId,
-            'status' => 'planifie',
+            'status' => 'en attente',
             'id_operateur' => $collabResponsable,
             'id_client' => null, // Sans client
             'id_projet' => null, // Sans projet

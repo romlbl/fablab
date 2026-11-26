@@ -9,8 +9,9 @@ use App\Models\Jobs;
 
 class Jobs_consommables extends Model
 {
-    //relations tables
+    protected $fillable = ['id_job', 'id_consommable', 'quantite', 'cout', 'cout_tot'];
 
+    //relations tables
     public function job(): BelongsTo
     {
         return $this->belongsTo(Jobs::class, 'id_job');

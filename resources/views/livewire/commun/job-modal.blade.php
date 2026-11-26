@@ -17,15 +17,6 @@
         job: $wire.$entangle('job'),
         saisie: { machine: '', projet: '', client: '', operateur: '', categorie: '', conception: '' },
 
-        ouvrir() {
-            this.active = null;
-            if (!this.job.date_debut) this.job.date_debut = this.versLocal(new Date());
-            this.open = true;
-        },
-        fermer() {
-            this.active = null;
-            this.open = false;
-        },
         reinitialiser() {
             this.saisie = { machine: '', projet: '', client: '', operateur: '', categorie: '', conception: '' };
         },
@@ -130,12 +121,7 @@
                 this.job.date_fin = this.versLocal(debut);
             });
         },
-    }"
-    x-init="if (!job.date_debut) job.date_debut = versLocal(new Date())"
-    x-effect="document.body.classList.toggle('overflow-hidden', open)"
-    @ouvrir-ajout.window="ouvrir()"
-    @fermer-ajout.window="fermer()"
->
+    }">
     <div @click.self="$dispatch('fermer-ajout')" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-contains sm:p-6">
         <div class="my-auto flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden sm:max-h-[calc(100dvh-3rem)] rounded-3xl border border-slate-200/90 bg-white shadow-modal">
 

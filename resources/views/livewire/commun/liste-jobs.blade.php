@@ -1,5 +1,3 @@
-@props(['jobs' => [], 'visible' => []])
-
 @php
     // min = largeur minimale (px) ; fr = poids de répartition (0 = largeur fixe)
     $colonnes = [
