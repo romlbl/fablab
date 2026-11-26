@@ -38,6 +38,15 @@ class Jobs extends Model
         ];
     }
 
+    public function dureeMinutes(): int
+    {
+        if (! $this->debut || ! $this->fin) {
+            return 0;
+        }
+
+        return (int) $this->debut->diffInMinutes($this->fin);
+    }
+
     // relations chargées pour les listes
     public function scopeAvecDetails(Builder $q): Builder
     {
@@ -75,7 +84,7 @@ class Jobs extends Model
         }
 
         if (! empty($filtres['categories'])) {
-            $q->whereHas('machine', fn ($m) => $m->whereIn('id_categorie', $filtres['categories']));
+            $q->WhereIn('id_categorie', $filtres['categories']);
         }
 
         if (! empty($filtres['consommables'])) {

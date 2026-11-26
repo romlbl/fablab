@@ -41,11 +41,11 @@ class JobModal extends Component
         'consommables'  => [],
     ];
 
-    public function mount(){
+    public function mount(array $prerempli = []){
         $this->role = session('auth_role');
         $this->idUser = session('auth_user_id');
         $this->job['date_debut'] = now()->format('Y-m-d\TH:i');
-
+        $this->valeursDefaut = 
         $this->suggestions = [
             'machines'   => Machines::pluck('nom', 'id')->toArray(),
             // catégories humaines seulement : celle d'une machine vient de la machine
@@ -57,8 +57,51 @@ class JobModal extends Component
             $this->suggestions['clients'] = Clients::pluck('nom', 'id')->toArray();
         }
 
-        $this->chargerSuggestionsProjets($this->role === 'client' ? $this->idUser : null);
-        $this->chargerSuggestionsConsommables();
+        $clesAutorisees = array_intersect_key($prerempli, $this->job);
+        foreach ($clesAutorisees as $cle => $valeur) {
+            if ($valeur !== null) {
+                $this->job[$cle] = $valeur;
+            }
+        }
+
+        $idClientFiltre = $this->role === 'client' ? $this->idUser : null;
+
+        if (! empty($this->job['projet_id'])) {
+            $projet = Projets::with('client:id,nom')->findOrFail((int) $this->job['projet_id']);
+
+            if ($this->role === 'client' && $projet->id_client !== $this->idUser) {
+                abort(403);
+            }
+
+            $this->job['projet_id'] = $projet->id;
+            $this->job['client_id'] = $this->job['client_id'] ?? $projet->id_client;
+            $idClientFiltre = $this->job['client_id'];
+        } elseif ($this->role === 'admin' && ! empty($this->job['client_id'])) {
+            $idClientFiltre = (int) $this->job['client_id'];
+        }
+
+        $this->chargerSuggestionsProjets($idClientFiltre);
+
+        $idCategorieConsommables = null;
+        if (! empty($this->job['machine_id'])) {
+            $machine = Machines::findOrFail((int) $this->job['machine_id']);
+            $this->job['machine_id'] = $machine->id;
+            $this->job['categorie_id'] = null;
+            $idCategorieConsommables = $machine->id_categorie;
+        }
+
+        $this->chargerSuggestionsConsommables($idCategorieConsommables);
+
+        $this->calculerDateFinSiDureePresente();
+    }
+
+    private function calculerDateFinSiDureePresente(){
+        $minutes = ((int) ($this->job['duree_heures'] ?: 0) * 60) + (int) ($this->job['duree_minutes'] ?: 0);
+        if ($minutes > 0 && ! empty($this->job['date_debut'])) {
+            $this->job['date_fin'] = Carbon::parse($this->job['date_debut'])
+                ->addMinutes($minutes)
+                ->format('Y-m-d\TH:i');
+        }
     }
 
     public function machineChoisie(int $id) {

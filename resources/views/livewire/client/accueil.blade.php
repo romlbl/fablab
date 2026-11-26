@@ -13,7 +13,7 @@
                 :selecteurs="['machine' => 'Par machine', 'projet' => 'Par projet']"
                 modele="selecteurMachines"
             />
-
+ 
             <x-stats.donut
                 wire:key="donut-conception"
                 titre="Temps conception"

@@ -23,7 +23,7 @@
     <div class="min-h-screen flex flex-col lg:flex-row">
 
         {{-- en-tête mobile --}} 
-        @include('layouts.partials.entete-mobile', [
+        @include('components.layouts.partials.entete-mobile', [
             'titre' => $titre,
             'nom' => $nomAffiche,
             'espace' => $espace,
@@ -36,9 +36,9 @@
         <aside :class="menuOuvert ? 'translate-x-0' : '-translate-x-full'" 
         class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] overflow-y-auto border-r border-slate-200/80 bg-white p-6 pt-[max(1.5rem,env(safe-area-inset-top))] flex flex-col justify-between transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 shrink-0">
             @if ($espace === 'admin')
-                @include('layouts.partials.menu-admin', ['nom' => $nomAffiche])
+                @include('components.layouts.partials.menu-admin', ['nom' => $nomAffiche])
             @else
-                @include('layouts.partials.menu-client', ['nom' => $nomAffiche])
+                @include('components.layouts.partials.menu-client', ['nom' => $nomAffiche])
             @endif
         </aside>
 

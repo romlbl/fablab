@@ -32,6 +32,16 @@ class Projets extends Model
         return $this->hasMany(Jobs::class, 'id_projet');
     }
 
+    public function machines(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Machines::class,
+            'jobs',
+            'id_projet',
+            'id_machine'
+        )->distinct();
+    }
+
     public function collaborateurs(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -41,4 +51,17 @@ class Projets extends Model
             'id_operateur'
         )->distinct();
     }
+
+    public function valorisation() {   
+        $tot = 0;
+        foreach ($this->jobs as $job) {
+            $consommablesJob = $job->jobConsommables;
+            foreach ($consommablesJob as $consommable) {
+                $tot += $consommable->cout_tot;
+            }
+        }
+        return $tot;
+    }
+
+
 }

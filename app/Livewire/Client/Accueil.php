@@ -2,55 +2,143 @@
 
 namespace App\Livewire\Client;
 
-use Livewire\Attributes\Url;
+use App\Models\Categories;
+use App\Models\Clients;
+use App\Models\Consommables;
+use App\Models\Jobs;
+use App\Models\Machines;
+use App\Models\Projets;
+use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
-use App\Models\Clients;
-use App\Models\Machines;
-use Illuminate\Support\Carbon;
-use App\Models\Projets;
-use App\Models\Consommables;
-use App\Models\Categories;
-use App\Models\Jobs;
- 
+
 class Accueil extends Component
 {
-    //variable connexion
     public ?Clients $client = null;
-    public ?string $nomSession = null;
-    public ?int $userIdSession = null;
 
-    public function mount(): void
-    {
-        $this->userIdSession = session('auth_user_id');
-        $this->nomSession = session('auth_user_nom');
+    public string $selecteurMachines = 'machine';
+    public string $selecteurConception = 'poste';
 
-        if ($this->userIdSession) {
-            $this->client = Clients::query()
-                ->where('id', $this->userIdSession)
-                ->whereNull('date_archive')
-                ->first();
-        }
+    public array $filtres = [
+        'machines'     => [],
+        'categories'   => [],
+        'projets'      => [],
+        'consommables' => [],
+        'statut'       => [],
+        'dateDebut'    => null,
+        'dateFin'      => null,
+    ];
 
-        //execution des fonctions
-        $this->donneesConsommables();
-        $this->initItems();
+    protected array $couleursDispo = [
+        '#E1AE17', '#132340', '#5BADCB', '#F2C94C', '#F2994A', '#6FCF97', '#27AE60',
+        '#219653', '#56CCF2', '#2D9CDB', '#BB6BD9', '#9B51E0', '#EB5757', '#FF0000',
+    ];
+
+    public function mount() {
+        // client connecté et non archivé, sinon accès refusé
+        $this->client = Clients::whereNull('date_archive')->find(session('auth_user_id'));
+        abort_unless($this->client, 403);
     }
 
-    //donut heures machines
-    public array $couleursDispo = ['#E1AE17','#132340','#5BADCB','#F2C94C','#F2994A','#F2C94C','#6FCF97','#27AE60','#219653','#56CCF2','#2D9CDB','#BB6BD9','#9B51E0','#EB5757','#FF0000'];
-    public string $selecteurMachines = 'machine'; 
+    // l'event relance render() : donuts et conso se mettent à jour
+    #[On('job-ajoute')]
+    public function rafraichir(){
+    }
 
-    private function couleurPourSegment($segments,$label){
-        $couleursUtilisees = array_column($segments, 'color');
-        $index = abs(crc32($label)) % count($this->couleursDispo);
+    // tous les jobs du client, chargés une seule fois
+    #[Computed]
+    public function jobsClient(){
+        return $this->client->jobs()
+            ->with([
+                'machine', 'categorie', 'projet',
+                'jobConsommables.consommable.categorie',
+                'jobConsommables.consommable.uniteObjet',
+            ])
+            ->get();
+    }
 
-        if (!in_array($this->couleursDispo[$index], $couleursUtilisees, true)) {
-            return $this->couleursDispo[$index];
+    #[Computed]
+    public function statsMachines() {
+        $jobs = $this->jobsClient->whereNotNull('id_machine');
+
+        return $this->segments($jobs, $this->selecteurMachines === 'projet'
+            ? fn ($job) => $job->projet?->nom ?? 'Sans projet'
+            : fn ($job) => $job->machine->nom);
+    }
+
+    #[Computed]
+    public function statsConception(){
+        $jobs = $this->jobsClient->whereNull('id_machine');
+
+        return $this->segments($jobs, $this->selecteurConception === 'projet'
+            ? fn ($job) => $job->projet?->nom ?? 'Sans projet'
+            : fn ($job) => $job->categorie->nom);
+    }
+
+    #[Computed]
+    public function dataConsommables(){
+        return $this->jobsClient
+            ->flatMap(fn ($job) => $job->jobConsommables)
+            ->groupBy('id_consommable')
+            ->map(function ($lignes) {
+                $conso = $lignes->first()->consommable;
+
+                return [
+                    'nom'       => $conso->nom,
+                    'catégorie' => $conso->categorie->nom ?? '',
+                    'quantité'  => $lignes->sum('quantite'),
+                    'unité'     => $conso->uniteObjet->unite ?? '',
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    // listes des filtres : [libellé, [id => nom]]
+    #[Computed]
+    public function items(){
+        return [
+            'machines'     => ['Machines', Machines::pluck('nom', 'id')->toArray()],
+            'categories'   => ['Catégories', Categories::pluck('nom', 'id')->toArray()],
+            'projets'      => ['Projets', Projets::where('id_client', $this->client->id)->pluck('nom', 'id')->toArray()],
+            'consommables' => ['Consommables', Consommables::pluck('nom', 'id')->toArray()],
+            'statut'       => ['Statuts', Jobs::STATUTS],
+        ];
+    }
+
+    // regroupe les jobs par libellé et additionne les minutes
+    private function segments(Collection $jobs, callable $libelle){
+        $segments = [];
+
+        foreach ($jobs->groupBy($libelle) as $label => $groupe) {
+            $minutes = $groupe->sum(fn ($job) => $job->dureeMinutes());
+
+            if ($minutes > 0) {
+                $segments[] = [
+                    'label' => (string) $label,
+                    'value' => $minutes,
+                    'color' => $this->couleurPourSegment($segments, (string) $label),
+                ];
+            }
+        }
+
+        return [
+            'segments' => $segments,
+            'total'    => array_sum(array_column($segments, 'value')),
+        ];
+    }
+
+    private function couleurPourSegment(array $segments, string $label){
+        $utilisees = array_column($segments, 'color');
+        $prefere = $this->couleursDispo[abs(crc32($label)) % count($this->couleursDispo)];
+
+        if (! in_array($prefere, $utilisees, true)) {
+            return $prefere;
         }
 
         foreach ($this->couleursDispo as $couleur) {
-            if (!in_array($couleur, $couleursUtilisees, true)) {
+            if (! in_array($couleur, $utilisees, true)) {
                 return $couleur;
             }
         }
@@ -58,212 +146,13 @@ class Accueil extends Component
         return $this->couleursDispo[0];
     }
 
-    public function segmentsMachines(){
-        $segements = [];
-        $total = 0;
-        foreach ($this->client->jobs()->whereNotNull('id_machine')->with('machine')->get() as $job) {
-            $nomMachine = $job->machine->nom;
-            $debut = Carbon::parse($job->debut);
-            $fin = Carbon::parse($job->fin);
-            $dureeMinutes = (int) $debut->diffInMinutes($fin);
-            $total += $dureeMinutes;
-
-            $indexSegment = array_search($nomMachine, array_column($segements, 'label'), true);
-            if ($indexSegment === false) {
-                $segements[] = [
-                    'label' => $nomMachine,
-                    'value' => $dureeMinutes,
-                    'color' => $this->couleurPourSegment($segements, $nomMachine),
-                ];
-            } else {
-                $segements[$indexSegment]['value'] += $dureeMinutes;
-            }
-        }
-
-        return [$segements,$total];
-    }
-
-    public function segmentsProjetsMachines(){
-        $segements = [];
-        $total = 0;
-        foreach($this->client->projets as $projet){
-            $nomProjet = $projet->nom;
-            $dureeMinutes = 0;
-            foreach($projet->jobs()->whereNotNull('id_machine')->get() as $job){
-                $debut = Carbon::parse($job->debut);
-                $fin = Carbon::parse($job->fin);
-                $dureeMinutes += (int) $debut->diffInMinutes($fin);
-            }
-            $total += $dureeMinutes;
-            if($dureeMinutes > 0 && !in_array($nomProjet, array_column($segements, 'label'))){
-                $segements[] = [
-                    'label' => $nomProjet,
-                    'value' => $dureeMinutes,
-                    'color' => $this->couleurPourSegment($segements, $nomProjet),
-                ];
-            }
-        }
-
-        return [$segements,$total];
-    }
-
-    public function getStatsMachinesProperty(){   
-        $dataMachines = $this->segmentsMachines();
-        $dataProjets = $this->segmentsProjetsMachines();
-
-        return match ($this->selecteurMachines) {
-            default => [
-                'total' => $dataMachines[1],
-                'segments' => $dataMachines[0]
-            ],
-            'projet' => [
-                'total' => $dataProjets[1],
-                'segments' => $dataProjets[0]
-            ]
-        };
-    }
-
-    //donuts temps conception
-    public string $selecteurConception = 'poste'; 
-
-    public function segmentsPosteConception(){
-        $segements = [];
-        $total = 0;
-        foreach ($this->client->jobs()->whereNull('id_machine')->with('categorie')->get() as $job) {
-            $poste = $job->categorie->nom;
-            $debut = Carbon::parse($job->debut);
-            $fin = Carbon::parse($job->fin);
-            $dureeMinutes = (int) $debut->diffInMinutes($fin);
-            $total += $dureeMinutes;
-
-            $indexSegment = array_search($poste, array_column($segements, 'label'), true);
-            if ($indexSegment === false) {
-                $segements[] = [
-                    'label' => $poste,
-                    'value' => $dureeMinutes,
-                    'color' => $this->couleurPourSegment($segements, $poste),
-                ];
-            } else {
-                $segements[$indexSegment]['value'] += $dureeMinutes;
-            }
-        }
-
-        return [$segements,$total];
-    }
-
-    public function segmentsProjetsConception(){
-        $segements = [];
-        $total = 0;
-        foreach($this->client->projets as $projet){
-            $nomProjet = $projet->nom;
-            $dureeMinutes = 0;
-            foreach($projet->jobs()->whereNull('id_machine')->get() as $job){
-                $debut = Carbon::parse($job->debut);
-                $fin = Carbon::parse($job->fin);
-                $dureeMinutes += (int) $debut->diffInMinutes($fin);
-            }
-            $total += $dureeMinutes;
-            if($dureeMinutes > 0 && !in_array($nomProjet, array_column($segements, 'label'))){
-                $segements[] = [
-                    'label' => $nomProjet,
-                    'value' => $dureeMinutes,
-                    'color' => $this->couleurPourSegment($segements, $nomProjet),
-                ];
-            }
-        }
-
-        return [$segements,$total];
-    }
-
-    public function getStatsConceptionProperty() {   
-        $dataConception = $this->segmentsPosteConception();
-        $dataProjetsConception = $this->segmentsProjetsConception();
-
-        return match ($this->selecteurConception) {
-            default => [
-                'total' => $dataConception[1],
-                'segments' => $dataConception[0]
-            ],
-            'projet' => [
-                'total' => $dataProjetsConception[1],
-                'segments' => $dataProjetsConception[0]
-            ]
-        };
-    }
-    
-    //carte consommables
-    public array $dataConsommables = [];
-
-    public function donneesConsommables(): void
-    {
-        foreach ($this->client->jobs as $job) {
-            foreach ($job->jobConsommables as $consommableUtilise) {
-                $nomConsommable = $consommableUtilise->consommable->nom;
-                $categorieConsommable = $consommableUtilise->consommable->categorie->nom ?? '';
-                $quantite = $consommableUtilise->quantite;
-                $unité = $consommableUtilise->consommable->uniteObjet->unite ?? '';
-
-                if (!isset($this->dataConsommables[$nomConsommable])) {
-                    $this->dataConsommables[$nomConsommable] = [
-                        'nom' => $nomConsommable,
-                        'catégorie' => $categorieConsommable,
-                        'quantité' => $quantite,
-                        'unité' => $unité,
-                    ];
-                } else {
-                    $this->dataConsommables[$nomConsommable]['quantité'] += $quantite;
-                }
-            }
-        }
-    }
-
-    #[On('job-ajoute')]
-    public function rafraichir(){
-        $this->donneesConsommables();
-    }
-
-    //gestion des filtres
-    public array $machines = [];
-    public array $categories = [];
-    public array $projets = [];
-    public array $items = [];
-    public array $consommables = [];
-    public array $statut = [];
-    public array $filtres = [
-        'machines' => [],
-        'categories' => [],
-        'projets' => [],
-        'consommables' => [],
-        'statut' => [],
-        'dateDebut' => null,
-        'dateFin' => null,
-    ];
-
-    public function initItems()
-    {
-        $this->machines = Machines::orderBy('nom')->pluck('nom', 'id')->toArray();
-        $this->projets = Projets::query()->where('id_client',$this->userIdSession)->orderBy('nom')->pluck('nom', 'id')->toArray();
-        $this->consommables = Consommables::orderBy('nom')->pluck('nom', 'id')->toArray();
-        $this->categories = Categories::pluck('nom', 'id')->toArray();
-        $this->statut = Jobs::STATUTS; 
-
-    }
-
     public function render()
     {
-        $this->items = [
-            'machines' => ["Machines", $this->machines],
-            'categories' => ["Catégories", $this->categories],
-            'projets' => ["Projets", $this->projets],
-            'consommables' => ["Consommables", $this->consommables],
-            'statut' => ["Statuts", $this->statut],
-        ];
-
         return view('livewire.client.accueil', [
-            'statsMachines' => $this->statsMachines,
-            'statsConception' => $this->statsConception,
+            'statsMachines'    => $this->statsMachines,
+            'statsConception'  => $this->statsConception,
             'dataConsommables' => $this->dataConsommables,
-            'items' => $this->items,
+            'items'            => $this->items,
         ]);
     }
 }

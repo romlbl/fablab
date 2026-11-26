@@ -17,6 +17,27 @@
         job: $wire.$entangle('job'),
         saisie: { machine: '', projet: '', client: '', operateur: '', categorie: ''},
 
+        async init() {
+            const syncChamp = (champ, listeNom) => {
+                const id = this.job[champ + '_id'];
+                if (!id) return;
+                const item = this.liste(listeNom).find((o) => o.id === Number(id));
+                if (item) this.saisie[champ] = item.nom;
+            };
+
+            syncChamp('projet', 'projets');
+            syncChamp('client', 'clients');
+            syncChamp('operateur', 'operateurs');
+
+            if (this.job.machine_id) {
+                syncChamp('machine', 'machines');
+                const categorie = await this.$wire.machineChoisie(Number(this.job.machine_id));
+                this.saisie.categorie = categorie?.nom ?? '';
+            } else {
+                syncChamp('categorie', 'categories');
+            }
+        },
+
         reinitialiser() {
             this.saisie = { machine: '', projet: '', client: '', operateur: '', categorie: ''};
         },

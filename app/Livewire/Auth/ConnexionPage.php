@@ -6,6 +6,7 @@ use App\Models\Clients;
 use App\Models\Collaborateurs;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
+use Illuminate\Support\Facades\RateLimiter;
 
 class ConnexionPage extends Component
 {
@@ -28,6 +29,24 @@ class ConnexionPage extends Component
         $this->resetErrorBag();
     }
 
+// 5 essais par minute et par ip
+    private function cleLimite(): string
+    {
+        return 'connexion|' . request()->ip();
+    }
+
+    private function bloque(string $champ): bool
+    {
+        if (RateLimiter::tooManyAttempts($this->cleLimite(), 5)) {
+            $this->addError($champ, 'Trop de tentatives, réessayer dans ' . RateLimiter::availableIn($this->cleLimite()) . ' s.');
+            return true;
+        }
+
+        RateLimiter::hit($this->cleLimite(), 60);
+
+        return false;
+    }
+
     public function connecterMembre()
     {
         //vérrifiaction des règles sinon message d'erreur
@@ -36,6 +55,10 @@ class ConnexionPage extends Component
         ], [
             'codeConnexion.required' => 'Le code de connexion est obligatoire.',
         ]);
+
+        if ($this->bloque('codeConnexion')) {
+            return;
+        }
 
         //récupère client actifs
         $clientsActifs = Clients::query()->whereNull('date_archive')->get();
@@ -51,6 +74,7 @@ class ConnexionPage extends Component
         }
 
         //génère un session et enregistre les informations utiles
+        RateLimiter::clear($this->cleLimite());
         session()->regenerate();
         session()->put([
             'auth_role'     => 'client',
@@ -71,6 +95,10 @@ class ConnexionPage extends Component
             'motDePasseAdmin.required' => 'Le mot de passe est obligatoire.',
         ]);
 
+        if ($this->bloque('motDePasseAdmin')) {
+            return;
+        }
+
         $collab = Collaborateurs::query()->where('nom', $this->nomAdmin)->whereNull('date_archive')->first();
 
         //si pas trouvé ou mauvais mot de passe alors message d'erreur
@@ -79,6 +107,7 @@ class ConnexionPage extends Component
             return;
         }
 
+        RateLimiter::clear($this->cleLimite());
         session()->regenerate();
         session()->put([
             'auth_role'     => 'admin',

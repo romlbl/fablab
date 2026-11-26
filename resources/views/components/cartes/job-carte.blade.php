@@ -110,19 +110,22 @@
                         <span class="inline-flex items-center px-2.5 py-1 whitespace-nowrap rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">Terminé</span>
                     @endif
                     @if ($job->status === 'validé')
-                        <span class="inline-flex items-center px-2.5 py-1 whitespace-nowrap rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#E2912C]/50 text-[#E2912C]">Validé</span>        
+                        <span class="inline-flex items-center px-2.5 py-1 whitespace-nowrap rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-900">Validé</span>        
+                    @endif
+                    @if ($job->status === 'arrêté')
+                        <span class="inline-flex items-center px-2.5 py-1 whitespace-nowrap rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-900">Arrêté</span>        
                     @endif
                 </div>
             </div>
             @endif
 
             @if ($voir('action'))
-            <div class="xl:order-11 xl:sticky xl:right-0 xl:z-30 xl:w-full xl:min-w-0 bg-white xl:pl-2 flex items-center justify-end gap-2 xl:justify-center xl:gap-0 self-stretch h-full">
-                <button type="button" data-action="stop-job" class="flex items-center justify-center text-[#E2912C] hover:text-[#ffbe00] transition-colors">
-                    <span class="material-symbols-outlined text-2xl">o</span>
+            <div class="xl:order-11 xl:sticky xl:right-0 xl:z-30 xl:w-full xl:min-w-0 bg-white xl:pl-2 flex items-center justify-around gap-2 xl:justify-center xl:gap-0 self-stretch h-full">
+                <button type="button"  class="flex items-center justify-center mr-2 text-[#E2912C] hover:text-[#ffbe00] transition-colors">
+                    <x-icones.crayon class="w-6 h-6 hover:cursor-pointer" />
                 </button>
-                <button type="button" data-action="stop-job" class="flex items-center justify-center text-[#E2912C] hover:text-[#ffbe00] transition-colors">
-                    <span class="material-symbols-outlined text-2xl">o</span>
+                <button type="button" class="flex items-center justify-center  text-red-500  hover:text-red-400 transition-colors">
+                    <x-icones.stop  class="w-6 h-6 hover:cursor-pointer "  />
                 </button>
             </div>
             @endif

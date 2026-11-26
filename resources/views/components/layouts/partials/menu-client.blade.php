@@ -35,9 +35,6 @@
     </div>
 
     <div class="mt-6 border-t border-slate-100 pt-6 lg:mt-0">
-        <a href="{{ route('connexion') }}" class="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600">
-            <x-icones.logout class="w-6 h-6" />
-            <span>Déconnexion</span>
-        </a>
+        <x-layouts.partials.deconnexion />
     </div>
 </div>

@@ -38,7 +38,7 @@
                 <span class="text-xl text-slate-900">{{ $total ? sprintf('%02dh %02dm', intdiv($total, 60), $total % 60) : '00h 00m' }}</span>
             </div>
         </div>
-        <ul class="h-30 overflow-y-auto space-y-2 pr-1 text-sm flex-1">
+        <ul class="h-fit max-h-30 overflow-y-auto space-y-2 pr-1 text-sm flex-1">
             @foreach ($segments as $segment)
                 @continue(($segment['value'] ?? 0) <= 0)
                 <li class="flex items-center justify-between gap-3">
