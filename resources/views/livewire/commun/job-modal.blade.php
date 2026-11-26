@@ -15,10 +15,10 @@
         active: null,
 
         job: $wire.$entangle('job'),
-        saisie: { machine: '', projet: '', client: '', operateur: '', categorie: '', conception: '' },
+        saisie: { machine: '', projet: '', client: '', operateur: '', categorie: ''},
 
         reinitialiser() {
-            this.saisie = { machine: '', projet: '', client: '', operateur: '', categorie: '', conception: '' };
+            this.saisie = { machine: '', projet: '', client: '', operateur: '', categorie: ''};
         },
         async soumettre() {
             const ok = await this.$wire.creer();
@@ -45,6 +45,7 @@
         saisir(champ, nom, valeur) {
             this.active = champ;
             this.job[champ + '_id'] = this.correspondance(nom, valeur)?.id ?? null;
+            if (champ === 'machine' && !this.job.machine_id) this.saisie.categorie = '';
         },
         async choisir(champ, option) {
             this.saisie[champ] = option.nom;
@@ -54,9 +55,6 @@
             if (champ === 'machine') {
                 const categorie = await this.$wire.machineChoisie(option.id);
                 this.saisie.categorie = categorie?.nom ?? '';
-                this.job.categorie_id = categorie?.id ?? null;
-                this.saisie.conception = '';
-                this.job.conception_id = null;
             } else if (champ === 'client') {
                 const projetConserve = await this.$wire.clientChoisi(option.id);
                 if (!projetConserve) {
@@ -157,7 +155,7 @@
                             x-cloak
                             style="display: none;"
                             class="{{ $aide }}"
-                        >Choisis une valeur dans la liste.</p>
+                        >Choisissez une valeur dans la liste.</p>
                         <div
                             x-show="active === 'machine' && options('machines', saisie.machine).length"
                             x-cloak
@@ -193,7 +191,7 @@
                             x-cloak
                             style="display: none;"
                             class="{{ $aide }}"
-                        >Choisis une valeur dans la liste.</p>
+                        >Choisissez une valeur dans la liste.</p>
                         <div
                             x-show="active === 'projet' && options('projets', saisie.projet).length"
                             x-cloak
@@ -217,6 +215,7 @@
                             type="text"
                             id="{{ $uid }}-categorie"
                             autocomplete="off"
+                            :readonly="!!job.machine_id"
                             x-model="saisie.categorie"
                             @focus="active = 'categorie'"
                             @input="saisir('categorie', 'categories', $event.target.value)"
@@ -225,13 +224,13 @@
                             class="{{ $champAuto }}"
                         >
                         <p
-                            x-show="saisie.categorie.trim() && job.categorie_id === null && active !== 'categorie'"
+                            x-show="!job.machine_id && saisie.categorie.trim() && job.categorie_id === null && active !== 'categorie'"
                             x-cloak
                             style="display: none;"
                             class="{{ $aide }}"
-                        >Choisis une valeur dans la liste.</p>
+                        >Choisissez une valeur dans la liste.</p>
                         <div
-                            x-show="active === 'categorie' && options('categories', saisie.categorie).length"
+                            x-show="active === 'categorie' && !job.machine_id && options('categories', saisie.categorie).length"
                             x-cloak
                             style="display: none;"
                             class="{{ $boiteSuggestions }} bottom-full mb-1.5"
@@ -266,7 +265,7 @@
                             x-cloak
                             style="display: none;"
                             class="{{ $aide }}"
-                        >Choisis une valeur dans la liste.</p>
+                        >Choisissez une valeur dans la liste.</p>
                         <div
                             x-show="active === 'client' && options('clients', saisie.client).length"
                             x-cloak
@@ -367,7 +366,7 @@
                                     x-cloak
                                     style="display: none;"
                                     class="basis-full text-xs text-rose-600"
-                                >Choisis un consommable dans la liste.</p>
+                                >Choisissez un consommable dans la liste.</p>
                             </div>
                         </template>
                     </div>
@@ -402,7 +401,7 @@
                             x-cloak
                             style="display: none;"
                             class="{{ $aide }}"
-                        >Choisis une valeur dans la liste.</p>
+                        >Choisissez une valeur dans la liste.</p>
                         <div
                             x-show="active === 'operateur' && options('operateurs', saisie.operateur).length"
                             x-cloak
@@ -421,46 +420,10 @@
                     </div>
                     @endif
 
-                    <div
-                        x-show="!job.machine_id"
-                        class="relative"
-                        @click.outside="active === 'conception' && (active = null)"
-                    >
-                        <label for="{{ $uid }}-conception" class="{{ $etiquette }}">Conception</label>
-                        <input
-                            type="text"
-                            id="{{ $uid }}-conception"
-                            autocomplete="off"
-                            x-model="saisie.conception"
-                            @focus="active = 'conception'"
-                            @input="saisir('conception', 'conceptions', $event.target.value)"
-                            @keydown.enter="choisirPremier($event, 'conception', 'conceptions')"
-                            @keydown.escape="active = null"
-                            class="{{ $champAuto }}"
-                        >
-                        <p
-                            x-show="saisie.conception.trim() && job.conception_id === null && active !== 'conception'"
-                            x-cloak
-                            style="display: none;"
-                            class="{{ $aide }}"
-                        >Choisis une valeur dans la liste.</p>
-                        <div
-                            x-show="active === 'conception' && options('conceptions', saisie.conception).length"
-                            x-cloak
-                            style="display: none;"
-                            class="{{ $boiteSuggestions }} bottom-full mb-1.5"
-                        >
-                            <template x-for="option in options('conceptions', saisie.conception)" :key="option.id">
-                                <button
-                                    type="button"
-                                    x-text="option.nom"
-                                    @click="choisir('conception', option)"
-                                    class="{{ $optionSuggestion }}"
-                                ></button>
-                            </template>
-                        </div>
-                    </div>
                 </div>
+            @if ($errors->any())
+                <p class="text-xs text-rose-600">{{ $errors->first() }}</p>
+            @endif
             </form>
 
             <div class="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/80 px-6 py-4 sm:px-8">

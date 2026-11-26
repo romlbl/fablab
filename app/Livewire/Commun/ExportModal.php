@@ -45,7 +45,7 @@ class ExportModal extends Component
                 $ligne = [
                     'description' => $job->description ?? '',
                     'machine'     => $job->machine?->nom ?? '',
-                    'categorie'   => $job->machine?->categorie?->nom ?? '',
+                    'categorie'   => $job->categorie?->nom ?? '',
                     'consommable' => '',
                     'unite'       => '',
                     'quantite'    => '',
@@ -62,7 +62,6 @@ class ExportModal extends Component
                     $ligne['operateur'] = $job->operateur?->nom ?? '';
                 }
 
-                $ligne['type_travail'] = $job->typeTravail?->nom ?? '';
                 $ligne['debut']        = $job->debut;
                 $ligne['fin']          = $job->fin;
                 $ligne['status']       = $job->status;
@@ -77,7 +76,7 @@ class ExportModal extends Component
                     $ligne = [
                         'description'=> $estPremiereLigne ? ($job->description ?? '') : '',
                         'machine'=> $estPremiereLigne ? ($job->machine?->nom ?? '') : '',
-                        'categorie' => $estPremiereLigne ? ($job->machine?->categorie?->nom ?? '') : '' ,
+                        'categorie' => $estPremiereLigne ? ($job->categorie?->nom ?? '') : '' ,
                         'consommable' => $consommable?->nom ?? '',
                         'unite'=> $consommable?->uniteObjet?->unite ?? '',
                         'quantite'=> $consommableJob->quantite ?? '',
@@ -92,7 +91,6 @@ class ExportModal extends Component
                     if ($role === 'admin') {
                         $ligne['operateur'] = $estPremiereLigne ? ($job->operateur?->nom ?? '') : '';   
                     }
-                    $ligne['type_travail'] = $estPremiereLigne ? ($job->typeTravail?->nom ?? '') : '';
                     $ligne['debut'] = $estPremiereLigne ? ($job->debut) : '';
                     $ligne['fin'] = $estPremiereLigne ? ($job->fin) : '';
                     $ligne['status'] = $estPremiereLigne ? ($job->status) : '';

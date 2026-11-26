@@ -11,29 +11,6 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $now = now();
-
-        // 0. Types de jobs et types de travail
-        DB::table('type_jobs')->updateOrInsert(
-            ['nom' => 'Machine'],
-            ['created_at' => $now, 'updated_at' => $now]
-        );
-        DB::table('type_jobs')->updateOrInsert(
-            ['nom' => 'Collaborateur'],
-            ['created_at' => $now, 'updated_at' => $now]
-        );
-
-        $typeMachineId = DB::table('type_jobs')->where('nom', 'Machine')->value('id');
-        $typeCollaborateurId = DB::table('type_jobs')->where('nom', 'Collaborateur')->value('id');
-
-        DB::table('type_travails')->updateOrInsert(
-            ['nom' => 'CAO', 'id_type_jobs' => $typeCollaborateurId],
-            ['created_at' => $now, 'updated_at' => $now]
-        );
-        DB::table('type_travails')->updateOrInsert(
-            ['nom' => 'MO', 'id_type_jobs' => $typeCollaborateurId],
-            ['created_at' => $now, 'updated_at' => $now]
-        );
-
         // 1. Unités (g, m, m², ml)
         $uniteG = DB::table('unites')->insertGetId([
             'unite' => 'g',
@@ -56,27 +33,17 @@ class DatabaseSeeder extends Seeder
             'updated_at' => $now,
         ]);
 
-        // 2. Catégories (Impression 3D FDM, Impression 3D SLA, Découpe laser, Scanner)
-        $catFdm = DB::table('categories')->insertGetId([
-            'nom' => 'Impression 3D FDM',
-            'created_at' => $now,
-            'updated_at' => $now,
+        // 2. catégories (type machine ou humain)
+        $ajouterCategorie = fn (string $nom, string $type) => DB::table('categories')->insertGetId([
+            'nom' => $nom, 'type' => $type, 'created_at' => $now, 'updated_at' => $now,
         ]);
-        $catSla = DB::table('categories')->insertGetId([
-            'nom' => 'Impression 3D SLA',
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        $catLaser = DB::table('categories')->insertGetId([
-            'nom' => 'Découpe laser',
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        $catScanner = DB::table('categories')->insertGetId([
-            'nom' => 'Scanner',
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+
+        $catFdm = $ajouterCategorie('Impression 3D FDM', 'machine');
+        $catSla = $ajouterCategorie('Impression 3D SLA', 'machine');
+        $catLaser = $ajouterCategorie('Découpe laser', 'machine');
+        $catScanner = $ajouterCategorie('Scanner', 'machine');
+        $ajouterCategorie('CAO', 'humain');
+        $ajouterCategorie('MO', 'humain');
 
         // 3. Catégories de projets (projet ouvert, externe, interne)
         $catProjOuvert = DB::table('categories_projets')->insertGetId([
@@ -349,7 +316,6 @@ class DatabaseSeeder extends Seeder
 
         // 11. Jobs (cohérence machine <-> consommable)
         $jobImpressionFdm = DB::table('jobs')->insertGetId([
-            'id_type' => $typeMachineId,
             'status' => 'terminé',
             'id_operateur' => $collabEtudiant,
             'id_client' => $clientNord,
@@ -358,12 +324,11 @@ class DatabaseSeeder extends Seeder
             'debut' => $now->copy()->subDays(2)->setTime(10, 0),
             'fin' => $now->copy()->subDays(2)->setTime(13, 30),
             'id_machine' => $machineBambu, // Machine FDM
-            'id_type_travail' => null,
+            'id_categorie' => $catFdm,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
         $jobDecoupeLaser = DB::table('jobs')->insertGetId([
-            'id_type' => $typeMachineId,
             'status' => 'en cours',
             'id_operateur' => $collabIntervenant,
             'id_client' => $clientDepartement,
@@ -372,12 +337,11 @@ class DatabaseSeeder extends Seeder
             'debut' => $now->copy()->subHours(1),
             'fin' => $now->copy()->addHours(1),
             'id_machine' => $machineTrotec, // Machine Découpe laser
-            'id_type_travail' => null,
+            'id_categorie' => $catLaser,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
         $jobImpressionSla = DB::table('jobs')->insertGetId([
-            'id_type' => $typeMachineId,
             'status' => 'en attente',
             'id_operateur' => $collabResponsable,
             'id_client' => $clientAssociation,
@@ -386,12 +350,11 @@ class DatabaseSeeder extends Seeder
             'debut' => $now->copy()->addDay()->setTime(9, 0),
             'fin' => $now->copy()->addDay()->setTime(12, 0),
             'id_machine' => $machineFormlabs, // Machine SLA
-            'id_type_travail' => null,
+            'id_categorie' => $catSla,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
         $jobScanner = DB::table('jobs')->insertGetId([
-            'id_type' => $typeMachineId,
             'status' => 'en attente',
             'id_operateur' => $collabResponsable,
             'id_client' => null, // Sans client
@@ -400,7 +363,7 @@ class DatabaseSeeder extends Seeder
             'debut' => $now->copy()->addDays(2)->setTime(14, 0),
             'fin' => $now->copy()->addDays(2)->setTime(15, 30),
             'id_machine' => $machineScanner, // Machine Scanner
-            'id_type_travail' => null, // Aucun type de travail pour ce job machine
+            'id_categorie' => $catScanner,
             'created_at' => $now,
             'updated_at' => $now,
         ]);

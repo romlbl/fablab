@@ -11,16 +11,12 @@ class Client1ProjetsJobsSeeder extends Seeder
     {
         $now = now();
 
-        // Récupération des types de jobs créés par DatabaseSeeder.
-        $typeMachineId = DB::table('type_jobs')->where('nom', 'Machine')->value('id');
-        $typeCollaborateurId = DB::table('type_jobs')->where('nom', 'Collaborateur')->value('id');
-        $typeCaoId = DB::table('type_travails')
-            ->where('nom', 'CAO')
-            ->where('id_type_jobs', $typeCollaborateurId)
-            ->value('id');
+        $catCaoId = DB::table('categories')->where('nom', 'CAO')->value('id');
+        $catFdmId = DB::table('categories')->where('nom', 'Impression 3D FDM')->value('id');
+        $catLaserId = DB::table('categories')->where('nom', 'Découpe laser')->value('id');
 
-        if (! $typeMachineId || ! $typeCollaborateurId || ! $typeCaoId) {
-            $this->command?->error('Les types de jobs ou de travail sont introuvables. Lancez DatabaseSeeder.');
+        if (! $catCaoId || ! $catFdmId || ! $catLaserId) {
+            $this->command?->error('Catégories introuvables. Lancez DatabaseSeeder.');
             return;
         }
 
@@ -93,7 +89,6 @@ class Client1ProjetsJobsSeeder extends Seeder
 
         // Jobs du Projet A
         DB::table('jobs')->insert([
-            'id_type' => $typeCollaborateurId,
             'status' => 'terminé',
             'id_operateur' => $operateur1Id,
             'id_client' => $client1Id,
@@ -102,13 +97,12 @@ class Client1ProjetsJobsSeeder extends Seeder
             'debut' => $now->copy()->subDays(5)->setTime(9, 0),
             'fin' => $now->copy()->subDays(5)->setTime(11, 30),
             'id_machine' => null,
-            'id_type_travail' => $typeCaoId,
+            'id_categorie' => $catCaoId,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
 
         $jobA2 = DB::table('jobs')->insertGetId([
-            'id_type' => $typeMachineId,
             'status' => 'terminé',
             'id_operateur' => $operateur2Id,
             'id_client' => $client1Id,
@@ -117,14 +111,13 @@ class Client1ProjetsJobsSeeder extends Seeder
             'debut' => $now->copy()->subDays(4)->setTime(14, 0),
             'fin' => $now->copy()->subDays(4)->setTime(17, 15),
             'id_machine' => $machineFdmId,
-            'id_type_travail' => null,
+            'id_categorie' => $catFdmId,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
 
         // Jobs du Projet B
         DB::table('jobs')->insert([
-            'id_type' => $typeCollaborateurId,
             'status' => 'terminé',
             'id_operateur' => $operateur1Id,
             'id_client' => $client1Id,
@@ -133,13 +126,12 @@ class Client1ProjetsJobsSeeder extends Seeder
             'debut' => $now->copy()->subDays(3)->setTime(10, 0),
             'fin' => $now->copy()->subDays(3)->setTime(11, 0),
             'id_machine' => null,
-            'id_type_travail' => $typeCaoId,
+            'id_categorie' => $catCaoId,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
 
         $jobB2 = DB::table('jobs')->insertGetId([
-            'id_type' => $typeMachineId,
             'status' => 'en cours',
             'id_operateur' => $operateur2Id,
             'id_client' => $client1Id,
@@ -148,15 +140,14 @@ class Client1ProjetsJobsSeeder extends Seeder
             'debut' => $now->copy()->subHours(2),
             'fin' => $now->copy()->addHours(1),
             'id_machine' => $machineLaserId,
-            'id_type_travail' => null,
+            'id_categorie' => $catLaserId,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
 
         // Jobs du Projet C
         DB::table('jobs')->insert([
-            'id_type' => $typeCollaborateurId,
-            'status' => 'en attente',
+            'status' => 'validé',
             'id_operateur' => $operateur1Id,
             'id_client' => $client1Id,
             'id_projet' => $projetC,
@@ -164,13 +155,12 @@ class Client1ProjetsJobsSeeder extends Seeder
             'debut' => $now->copy()->addDay()->setTime(9, 30),
             'fin' => $now->copy()->addDay()->setTime(11, 0),
             'id_machine' => null,
-            'id_type_travail' => $typeCaoId,
+            'id_categorie' => $catCaoId,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
 
         DB::table('jobs')->insert([
-            'id_type' => $typeMachineId,
             'status' => 'en attente',
             'id_operateur' => $operateur2Id,
             'id_client' => $client1Id,
@@ -179,7 +169,7 @@ class Client1ProjetsJobsSeeder extends Seeder
             'debut' => $now->copy()->addDays(2)->setTime(13, 0),
             'fin' => $now->copy()->addDays(2)->setTime(15, 0),
             'id_machine' => $machineFdmId,
-            'id_type_travail' => null,
+            'id_categorie' => $catFdmId,
             'created_at' => $now,
             'updated_at' => $now,
         ]);

@@ -3,11 +3,11 @@
 namespace App\Livewire\Client;
 
 use Livewire\Attributes\Url;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use App\Models\Clients;
 use App\Models\Machines;
 use Illuminate\Support\Carbon;
-use App\Models\Type_travail;
 use App\Models\Projets;
 use App\Models\Consommables;
 use App\Models\Categories;
@@ -61,9 +61,8 @@ class Accueil extends Component
     public function segmentsMachines(){
         $segements = [];
         $total = 0;
-        foreach ($this->client->jobs()->where('id_type', 1)->get() as $job) {
-            $machine = Machines::find($job->id_machine);
-            $nomMachine = $machine->nom;
+        foreach ($this->client->jobs()->whereNotNull('id_machine')->with('machine')->get() as $job) {
+            $nomMachine = $job->machine->nom;
             $debut = Carbon::parse($job->debut);
             $fin = Carbon::parse($job->fin);
             $dureeMinutes = (int) $debut->diffInMinutes($fin);
@@ -90,7 +89,7 @@ class Accueil extends Component
         foreach($this->client->projets as $projet){
             $nomProjet = $projet->nom;
             $dureeMinutes = 0;
-            foreach($projet->jobs()->where('id_type', 1)->get() as $job){
+            foreach($projet->jobs()->whereNotNull('id_machine')->get() as $job){
                 $debut = Carbon::parse($job->debut);
                 $fin = Carbon::parse($job->fin);
                 $dureeMinutes += (int) $debut->diffInMinutes($fin);
@@ -130,8 +129,8 @@ class Accueil extends Component
     public function segmentsPosteConception(){
         $segements = [];
         $total = 0;
-        foreach ($this->client->jobs()->where('id_type', 2)->get() as $job) {
-            $poste = $job->typeTravail->nom;
+        foreach ($this->client->jobs()->whereNull('id_machine')->with('categorie')->get() as $job) {
+            $poste = $job->categorie->nom;
             $debut = Carbon::parse($job->debut);
             $fin = Carbon::parse($job->fin);
             $dureeMinutes = (int) $debut->diffInMinutes($fin);
@@ -158,7 +157,7 @@ class Accueil extends Component
         foreach($this->client->projets as $projet){
             $nomProjet = $projet->nom;
             $dureeMinutes = 0;
-            foreach($projet->jobs()->where('id_type', 2)->get() as $job){
+            foreach($projet->jobs()->whereNull('id_machine')->get() as $job){
                 $debut = Carbon::parse($job->debut);
                 $fin = Carbon::parse($job->fin);
                 $dureeMinutes += (int) $debut->diffInMinutes($fin);
@@ -218,11 +217,15 @@ class Accueil extends Component
         }
     }
 
+    #[On('job-ajoute')]
+    public function rafraichir(){
+        $this->donneesConsommables();
+    }
+
     //gestion des filtres
     public array $machines = [];
     public array $categories = [];
     public array $projets = [];
-    public array $conception = [];
     public array $items = [];
     public array $consommables = [];
     public array $statut = [];
@@ -230,7 +233,6 @@ class Accueil extends Component
         'machines' => [],
         'categories' => [],
         'projets' => [],
-        'conception' => [],
         'consommables' => [],
         'statut' => [],
         'dateDebut' => null,
@@ -239,11 +241,10 @@ class Accueil extends Component
 
     public function initItems()
     {
-        $this->machines = Machines::all()->pluck('nom', 'id')->toArray();
-        $this->projets = Projets::query()->where('id_client',$this->userIdSession)->pluck('nom', 'id')->toArray();
-        $this->conception = Type_travail::all()->pluck('nom', 'id')->toArray();
-        $this->consommables = Consommables::all()->pluck('nom', 'id')->toArray();
-        $this->categories = Categories::all()->pluck('nom', 'id')->toArray();
+        $this->machines = Machines::orderBy('nom')->pluck('nom', 'id')->toArray();
+        $this->projets = Projets::query()->where('id_client',$this->userIdSession)->orderBy('nom')->pluck('nom', 'id')->toArray();
+        $this->consommables = Consommables::orderBy('nom')->pluck('nom', 'id')->toArray();
+        $this->categories = Categories::pluck('nom', 'id')->toArray();
         $this->statut = Jobs::STATUTS; 
 
     }
@@ -254,7 +255,6 @@ class Accueil extends Component
             'machines' => ["Machines", $this->machines],
             'categories' => ["Catégories", $this->categories],
             'projets' => ["Projets", $this->projets],
-            'conception' => ["Conception", $this->conception],
             'consommables' => ["Consommables", $this->consommables],
             'statut' => ["Statuts", $this->statut],
         ];

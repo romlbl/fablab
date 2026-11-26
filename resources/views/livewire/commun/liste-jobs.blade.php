@@ -39,12 +39,22 @@
             <!-- en-tête tableau (ordi) -->
             <div class="hidden xl:grid xl:[grid-template-columns:var(--jobs-cols)] xl:gap-x-4 sticky top-0 z-40 bg-[#FAF8FF] items-center whitespace-nowrap px-6 py-2.5 border-x border-x-transparent border-b border-b-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 @foreach ($affichees as $cle => $col)
-                    <div @class([
+                    @if ($cle === 'debut')
+                        <button wire:click="tri('debut')" class="items-start uppercase text-start">
+                            {{ $col['label'] }}
+                        </button>   
+                    @elseif ($cle === 'fin')
+                        <button wire:click="tri('fin')" class="items-start uppercase text-start">
+                            {{ $col['label'] }}
+                        </button>
+                    @else
+                        <div @class([
                         'min-w-0',
                         'sticky z-30 bg-[#FAF8FF] pl-2 text-center shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.04)]' => in_array($cle, ['statut', 'action'], true),
                         'right-20' => $cle === 'statut' && $actionVisible,
                         'right-0'  => ($cle === 'statut' && ! $actionVisible) || $cle === 'action',
                     ])>{{ $col['label'] }}</div>
+                    @endif
                 @endforeach
             </div>
 

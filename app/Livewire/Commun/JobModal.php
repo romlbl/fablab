@@ -2,23 +2,24 @@
 
 namespace App\Livewire\Commun;
 
-use Livewire\Attributes\Locked;
-use Illuminate\Support\Facades\DB;
-use Livewire\Component;
-use App\Models\Machines;
-use App\Models\Projets;
+use App\Enums\TypeCategorie;
+use App\Models\Categories;
 use App\Models\Clients;
 use App\Models\Collaborateurs;
-use App\Models\Categories;
 use App\Models\Consommables;
-use App\Models\Type_travail;
 use App\Models\Jobs;
 use App\Models\Jobs_consommables;
+use App\Models\Machines;
+use App\Models\Projets;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
+use Livewire\Component;
 
-
-class JobModal extends Component 
+class JobModal extends Component
 {
+    public array $suggestions = [];
 
     #[Locked]
     public string $role = '';
@@ -26,66 +27,61 @@ class JobModal extends Component
     #[Locked]
     public ?int $idUser = null;
 
-    public array $suggestions = [];
     public array $job = [
-        'description'    => '',
-        'machine_id'     => null,
-        'projet_id'      => null,
-        'client_id'      => null,
-        'operateur_id'   => null,
-        'categorie_id'   => null,
-        'conception_id'  => null,
-        'date_debut'     => '',
-        'duree_heures'   => '',
-        'duree_minutes'  => '',
-        'date_fin'       => '',
-        'consommables'   => [],  
+        'description'   => '',
+        'machine_id'    => null,
+        'projet_id'     => null,
+        'client_id'     => null,
+        'operateur_id'  => null,
+        'categorie_id'  => null,
+        'date_debut'    => '',
+        'duree_heures'  => '',
+        'duree_minutes' => '',
+        'date_fin'      => '',
+        'consommables'  => [],
     ];
 
-    public function mount() {   
+    public function mount(){
         $this->role = session('auth_role');
         $this->idUser = session('auth_user_id');
+        $this->job['date_debut'] = now()->format('Y-m-d\TH:i');
+
         $this->suggestions = [
-            'machines'   => Machines::all()->pluck('nom', 'id')->toArray(),
-            'categories' => Categories::all()->pluck('nom', 'id')->toArray(),
-            'conceptions' => Type_travail::all()->pluck('nom', 'id')->toArray(),
+            'machines'   => Machines::pluck('nom', 'id')->toArray(),
+            // catégories humaines seulement : celle d'une machine vient de la machine
+            'categories' => Categories::deType(TypeCategorie::Humain)->pluck('nom', 'id')->toArray(),
         ];
 
         if ($this->role === 'admin') {
-            $this->suggestions['operateurs'] = Collaborateurs::all()->pluck('nom', 'id')->toArray();
-            $this->suggestions['clients'] = Clients::all()->pluck('nom', 'id')->toArray();
+            $this->suggestions['operateurs'] = Collaborateurs::pluck('nom', 'id')->toArray();
+            $this->suggestions['clients'] = Clients::pluck('nom', 'id')->toArray();
         }
 
         $this->chargerSuggestionsProjets($this->role === 'client' ? $this->idUser : null);
         $this->chargerSuggestionsConsommables();
-        $this->job['date_debut'] = now()->format('Y-m-d\TH:i');
     }
 
-    public function machineChoisie(int $id){
+    public function machineChoisie(int $id) {
         $machine = Machines::with('categorie:id,nom')->findOrFail($id);
         $this->job['machine_id'] = $machine->id;
-        $categorie = $machine->categorie;
-        $this->job['categorie_id'] = $categorie?->id;
-        $this->job['conception_id'] = null;
+        $this->job['categorie_id'] = null;
 
         $this->chargerSuggestionsConsommables($machine->id_categorie);
 
-        return $categorie
-            ? ['id' => $categorie->id, 'nom' => $categorie->nom]
+        return $machine->categorie
+            ? ['id' => $machine->categorie->id, 'nom' => $machine->categorie->nom]
             : null;
     }
 
-    public function clientChoisi(int $id){
+    public function clientChoisi(int $id) {
         abort_unless($this->role === 'admin', 403);
+
         $client = Clients::findOrFail($id);
         $this->job['client_id'] = $client->id;
-
         $this->chargerSuggestionsProjets($client->id);
 
         $projetId = $this->job['projet_id'];
-        if ($projetId !== null && ! Projets::whereKey($projetId)
-            ->where('id_client', $client->id)
-            ->exists()) {
+        if ($projetId !== null && ! Projets::whereKey($projetId)->where('id_client', $client->id)->exists()) {
             $this->job['projet_id'] = null;
         }
 
@@ -94,18 +90,17 @@ class JobModal extends Component
 
     public function projetChoisi(int $id){
         $projet = Projets::with('client:id,nom')->findOrFail($id);
+
         if ($this->role === 'client' && $projet->id_client !== $this->idUser) {
             abort(403);
         }
-        $client = $projet->client;
 
+        $client = $projet->client;
         $this->job['projet_id'] = $projet->id;
         $this->job['client_id'] = $client?->id;
         $this->chargerSuggestionsProjets($client?->id);
 
-        return $client
-            ? ['id' => $client->id, 'nom' => $client->nom]
-            : null;
+        return $client ? ['id' => $client->id, 'nom' => $client->nom] : null;
     }
 
     private function chargerSuggestionsProjets(?int $idClient = null) {
@@ -115,27 +110,29 @@ class JobModal extends Component
             ->toArray();
     }
 
-    private function chargerSuggestionsConsommables(?int $idCategorie = null) {
+    private function chargerSuggestionsConsommables(?int $idCategorie = null){
         $this->suggestions['consommables'] = Consommables::query()
             ->with('uniteObjet')
             ->when($idCategorie !== null, fn ($query) => $query->where('id_categorie', $idCategorie))
             ->get()
             ->map(fn (Consommables $consommable) => [
-                'id' => $consommable->id,
-                'nom' => $consommable->nom,
+                'id'    => $consommable->id,
+                'nom'   => $consommable->nom,
                 'unite' => $consommable->uniteObjet?->unite,
             ])
             ->toArray();
     }
 
     public function creer(){
+        $estAdmin = $this->role === 'admin';
+
         $this->validate([
             'job.description'             => ['nullable', 'string', 'max:500'],
             'job.machine_id'              => ['nullable', 'exists:machines,id'],
-            'job.conception_id'           => ['nullable', 'exists:type_travails,id'],
+            'job.categorie_id'            => ['nullable', Rule::exists('categories', 'id')->where('type', TypeCategorie::Humain->value)],
             'job.projet_id'               => ['nullable', 'exists:projets,id'],
             'job.client_id'               => ['nullable', 'exists:clients,id'],
-            'job.operateur_id'            => ['nullable', 'exists:collaborateurs,id'],
+            'job.operateur_id'            => [$estAdmin ? 'required' : 'nullable', 'exists:collaborateurs,id'],
             'job.date_debut'              => ['required', 'date'],
             'job.duree_heures'            => ['nullable', 'integer', 'min:0'],
             'job.duree_minutes'           => ['nullable', 'integer', 'min:0', 'max:59'],
@@ -144,10 +141,12 @@ class JobModal extends Component
             'job.consommables.*.quantite' => ['required', 'numeric', 'gt:0'],
         ]);
 
-        $estAdmin = $this->role === 'admin';
+        // catégorie d'un job machine = celle de la machine 
+        $machine = $this->job['machine_id'] ? Machines::findOrFail($this->job['machine_id']) : null;
+        $idCategorie = $machine?->id_categorie ?? $this->job['categorie_id'];
 
-        if (! $this->job['machine_id'] && ! $this->job['conception_id']) {
-            $this->addError('job.machine_id', 'Choisis une machine ou une conception.');
+        if (! $idCategorie) {
+            $this->addError('job.categorie_id', 'Choisis une machine ou une catégorie.');
             return false;
         }
 
@@ -177,23 +176,22 @@ class JobModal extends Component
         }
 
         $statut = match (true) {
-            ! $estAdmin => 'en attente',
+            ! $estAdmin    => 'en attente',
             $fin->isPast() => 'terminé',
-            default => 'en cours',
+            default        => 'en cours',
         };
 
-        $jobCree = DB::transaction(function () use ($clientId, $operateurId, $projetId, $debut, $fin, $statut) {
+        $jobCree = DB::transaction(function () use ($idCategorie, $clientId, $operateurId, $projetId, $debut, $fin, $statut) {
             $nouveau = Jobs::create([
-                'id_type'         => $this->job['machine_id'] ? 1 : 2,
-                'status'          => $statut,
-                'id_operateur'    => $operateurId,
-                'id_client'       => $clientId,
-                'id_projet'       => $projetId,
-                'description'     => $this->job['description'],
-                'id_machine'      => $this->job['machine_id'],
-                'id_type_travail' => $this->job['machine_id'] ? null : $this->job['conception_id'],
-                'debut'           => $estAdmin ? $debut : null,
-                'fin'             => $estAdmin ? $fin : null,
+                'id_categorie' => $idCategorie,
+                'status'       => $statut,
+                'id_operateur' => $operateurId,
+                'id_client'    => $clientId,
+                'id_projet'    => $projetId,
+                'description'  => $this->job['description'],
+                'id_machine'   => $this->job['machine_id'],
+                'debut'        => $debut,
+                'fin'          => $fin,
             ]);
 
             foreach ($this->job['consommables'] as $ligne) {

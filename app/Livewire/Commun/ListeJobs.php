@@ -11,6 +11,8 @@ class ListeJobs extends Component
 {
     #[Reactive]
     public array $filtres = [];
+    public string $ChampTri = 'debut';
+    public string $valeurTri = 'desc';
 
     private function colonnesVisibles(): array
     {
@@ -25,12 +27,23 @@ class ListeJobs extends Component
     public function rafraichir(){
     }
 
+    public function tri($champ): void
+    {
+        if ($champ === 'debut') {
+            $this->ChampTri = 'debut';
+            $this->valeurTri = $this->valeurTri === 'desc' ? 'asc' : 'desc';
+        }elseif ($champ === 'fin') {
+            $this->ChampTri = 'fin';
+            $this->valeurTri = $this->valeurTri === 'desc' ? 'asc' : 'desc';
+        }
+    }
+
     public function render()
     {
         $jobs = Jobs::avecDetails()
             ->visiblePar(session('auth_role'), session('auth_user_id'))
             ->filtrer($this->filtres)
-            ->latest('debut')
+            ->orderBy($this->ChampTri, $this->valeurTri)
             ->get();
 
         return view('livewire.commun.liste-jobs', [

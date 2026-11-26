@@ -96,7 +96,7 @@
             <button type="button" x-show="dateDebut || dateFin" x-cloak @click.stop="effacer()" class="absolute right-2 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-600">×</button>
         </div>
 
-        <div x-show="ouvert" x-cloak class="absolute bottom-full left-0 z-50 mb-1.5 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 lg:bottom-auto lg:top-full lg:mb-0 lg:mt-1.5">
+        <div x-show="ouvert" x-cloak class="absolute bottom-full left-0 z-50 mb-1.5 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5">
             <div class="mb-3 flex items-center justify-between">
                 <button type="button" @click="changerMois(-1)" class="flex h-8 w-8 items-center justify-center rounded-lg text-base font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-[#10203E]">‹</button>
                 <span x-text="titreMois" class="text-sm font-semibold capitalize text-slate-800"></span>

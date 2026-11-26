@@ -11,17 +11,17 @@ return new class extends Migration
     {
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_type')->constrained('type_jobs')->restrictOnDelete();
-            $table->string('status');
-            $table->unsignedBigInteger('id_operateur')->nullable();
-            $table->unsignedBigInteger('id_client')->nullable();
-            $table->unsignedBigInteger('id_projet')->nullable();
+            $table->foreignId('id_categorie')->constrained('categories')->restrictOnDelete();
+            $table->string('status')->index();
+            $table->foreignId('id_operateur')->nullable()->constrained('collaborateurs')->restrictOnDelete();
+            $table->foreignId('id_client')->nullable()->constrained('clients')->restrictOnDelete();
+            $table->foreignId('id_projet')->nullable()->constrained('projets')->restrictOnDelete();
+            $table->foreignId('id_machine')->nullable()->constrained('machines')->restrictOnDelete();
             $table->text('description')->nullable();
             $table->timestamp('debut')->nullable();
             $table->timestamp('fin')->nullable();
-            $table->unsignedBigInteger('id_machine')->nullable();
-            $table->foreignId('id_type_travail')->nullable()->constrained('type_travails')->nullOnDelete();
             $table->timestamps();
+
         });
     }
 

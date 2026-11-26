@@ -13,23 +13,13 @@ use App\Models\Projets;
 use App\Models\Machines;
 use App\Models\Jobs_consommables;
 use App\Models\Consommables;
-use App\Models\Type_job;
-use App\Models\Type_travail;    
 
 class Jobs extends Model
 {
 
     protected $fillable = [
-        'id_type',
-        'status',
-        'id_operateur',
-        'id_client',
-        'id_projet',
-        'description',
-        'id_machine',
-        'id_type_travail',
-        'debut',
-        'fin',
+        'id_categorie', 'status', 'id_operateur', 'id_client', 'id_projet',
+        'id_machine', 'description', 'debut', 'fin',
     ];
 
     public const STATUTS = [
@@ -52,8 +42,8 @@ class Jobs extends Model
     public function scopeAvecDetails(Builder $q): Builder
     {
         return $q->with([
-            'machine.categorie', 'client', 'projet', 'operateur',
-            'typeTravail', 'jobConsommables.consommable.uniteObjet',
+            'machine', 'categorie', 'client', 'projet', 'operateur',
+            'jobConsommables.consommable.uniteObjet',
         ]);
     }
 
@@ -104,6 +94,12 @@ class Jobs extends Model
     }
 
     //relations tables
+
+    public function categorie(): BelongsTo
+    {
+        return $this->belongsTo(Categories::class, 'id_categorie');
+    }
+
     public function operateur(): BelongsTo
     {
         return $this->belongsTo(
@@ -130,16 +126,6 @@ class Jobs extends Model
     public function jobConsommables(): HasMany
     {
         return $this->hasMany(Jobs_consommables::class, 'id_job');
-    }
-    
-    public function jobType(): BelongsTo
-    {
-        return $this->belongsTo(Type_job::class, 'id_type');
-    }
-
-    public function typeTravail(): BelongsTo
-    {
-        return $this->belongsTo(Type_travail::class, 'id_type_travail');
     }
 
     public function consommables(): BelongsToMany

@@ -14,8 +14,8 @@ return new class extends Migration
             $table->string('nom');
             $table->text('description')->nullable();
             $table->string('chemin_image')->nullable();
-            $table->unsignedBigInteger('id_categorie');
-            $table->unsignedBigInteger('id_unite');
+            $table->foreignId('id_categorie')->constrained('categories')->restrictOnDelete();
+            $table->foreignId('id_unite')->constrained('unites')->restrictOnDelete();
             $table->string('fournisseur')->nullable();
             $table->decimal('prix_unite', 10, 2)->nullable();
             $table->string('format_brute_vente')->nullable();

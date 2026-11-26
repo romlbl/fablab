@@ -11,8 +11,8 @@ return new class extends Migration
     {
         Schema::create('jobs_consommables', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_job');
-            $table->unsignedBigInteger('id_consommable');
+            $table->foreignId('id_job')->constrained('jobs')->cascadeOnDelete();
+            $table->foreignId('id_consommable')->constrained('consommables')->restrictOnDelete();
             $table->decimal('cout_tot', 10, 2);
             $table->decimal('quantite', 10, 2);
             $table->decimal('cout', 10, 2);

@@ -3,7 +3,7 @@
 @php
     $voir = fn (string $col) => in_array($col, $visible, true);
     $groupe = fn (array $cols) => count(array_intersect($cols, $visible)) > 0;
-    $categorie = $job->id_type == 1 ? $job->machine?->categorie?->nom : $job->typeTravail?->nom;
+    $categorie = $job->categorie?->nom;
 @endphp
 
 <div class="job-card-grid flex flex-col gap-3 xl:grid xl:[grid-template-columns:var(--jobs-cols)] xl:gap-x-4 xl:items-start px-4 sm:px-6 py-4 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group relative">
@@ -108,6 +108,9 @@
                     @endif
                     @if ($job->status === 'terminé')
                         <span class="inline-flex items-center px-2.5 py-1 whitespace-nowrap rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">Terminé</span>
+                    @endif
+                    @if ($job->status === 'validé')
+                        <span class="inline-flex items-center px-2.5 py-1 whitespace-nowrap rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#E2912C]/50 text-[#E2912C]">Validé</span>        
                     @endif
                 </div>
             </div>

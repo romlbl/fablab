@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->string('nom');
             $table->text('description')->nullable();
-            $table->unsignedBigInteger('id_categorie');
+            $table->foreignId('id_categorie')->constrained('categories')->restrictOnDelete();
             $table->string('chemin_image')->nullable();
             $table->timestamp('date_creation')->useCurrent();
             $table->timestamp('date_archive')->nullable();

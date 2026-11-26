@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('clients', function (Blueprint $table) {
             $table->id(); 
             $table->string('nom'); 
-            $table->unsignedBigInteger('id_type_client');
+            $table->foreignId('id_type_client')->constrained('types_clients')->restrictOnDelete();
             $table->string('code_acces_hash')->unique(); 
             $table->timestamp('date_creation')->useCurrent(); 
             $table->timestamp('date_archive')->nullable(); 

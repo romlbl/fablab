@@ -14,8 +14,8 @@ return new class extends Migration
             $table->string('nom');
             $table->text('description')->nullable();
             $table->text('chemin_image')->nullable();
-            $table->unsignedBigInteger('id_client')->nullable();
-            $table->unsignedBigInteger('id_categorie_projet')->nullable();
+            $table->foreignId('id_client')->nullable()->constrained('clients')->nullOnDelete();
+            $table->foreignId('id_categorie_projet')->nullable()->constrained('categories_projets')->nullOnDelete();
             $table->timestamp('date_creation')->useCurrent();
             $table->timestamp('date_archive')->nullable();
             $table->timestamps();
