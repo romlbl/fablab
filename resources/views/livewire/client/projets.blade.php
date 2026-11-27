@@ -9,7 +9,7 @@
         </div>
     </section>
 
-    <section class="w-full flex flex-row flex-wrap items-start gap-4 sm:gap-6 py-4 pl-2 snap-x snap-mandatory scroll-pl-2 sm:snap-none">
+    <section class="w-full flex flex-col items-center md:items-start md:flex-row md:flex-wrap gap-6 p-2">
         @foreach ($this->resultats as $projet)
             <x-cartes.projet-carte :projet="$projet" :key="'results-' . md5($search)" />
         @endforeach

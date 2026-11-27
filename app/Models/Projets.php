@@ -10,6 +10,8 @@ use App\Models\Clients;
 use App\Models\Categories_projets;
 use App\Models\Jobs;
 use App\Models\Collaborateurs;
+use App\Models\Machines;
+use App\Models\Consommables;
 
 class Projets extends Model
 {
@@ -39,6 +41,16 @@ class Projets extends Model
             'jobs',
             'id_projet',
             'id_machine'
+        )->distinct();
+    }
+
+    public function consommables(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Consommables::class,
+            'job_consommables',
+            'id_projet',
+            'id_consommable'
         )->distinct();
     }
 

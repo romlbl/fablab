@@ -8,8 +8,8 @@ Route::middleware('client')
         Route::view('/', 'pages.client.accueil')->name('accueil');
 
         Route::prefix('projets')->name('projets.')->group(function () {
-            Route::view('/', 'pages.client.projets.index')->name('index');
-            Route::view('/{projet}', 'pages.client.projets.show')->name('show');
+            Route::view('/', 'pages.client.index')->name('index');
+            Route::view('/{projet}', 'pages.client.show')->name('show');
         });
 
         Route::view('/machines', 'pages.client.machines')->name('machines');

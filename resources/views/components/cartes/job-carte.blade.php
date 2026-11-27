@@ -29,7 +29,7 @@
                             <div class="flex items-center space-x-1.5 min-w-0">
                                 <span class="{{ $jobConsommable->consommable?->nom ? 'text-slate-800' : 'text-slate-400' }} font-medium break-normal"> {{$jobConsommable->consommable?->nom ?: 'Aucun'}}</span>
                                 <span class="text-slate-800">·</span>
-                                <span class="{{ $jobConsommable->quantite ? 'text-slate-800' : 'text-slate-400' }} whitespace-nowrap"> {{$jobConsommable->quantite ? $jobConsommable->quantite . 'g' : 'Aucun'}}</span>
+                                <span class="{{ $jobConsommable->quantite ? 'text-slate-800' : 'text-slate-400' }} whitespace-nowrap"> {{$jobConsommable->quantite ? $jobConsommable->quantite . $jobConsommable->consommable->uniteObjet->unite : 'Aucun'}}</span>
                             </div>
                             @if ($voir('prix'))
                                 <span class="{{ $jobConsommable->cout_tot ? 'text-slate-800' : 'text-slate-400' }} whitespace-nowrap ml-5"> {{$jobConsommable->cout_tot ? $jobConsommable->cout_tot . '€' : 'Aucun'}}</span>

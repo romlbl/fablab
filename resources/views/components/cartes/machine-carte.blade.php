@@ -1,28 +1,28 @@
 @props(['machine'])
 
-<article class="self-stretch sm:self-start flex-shrink-0 snap-start w-[78%] sm:w-full max-w-xs aspect-auto sm:aspect-[2/3] min-h-[26rem] sm:min-h-0 bg-white rounded-3xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:scale-105 hover:cursor-pointer transition-all duration-500 overflow-hidden flex flex-col group">
-    @if (session('auth_role') === 'admin' )
-    <div class="absolute top-3 right-3 z-10 flex gap-2">
-        <button type="button" class="inline-flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#E2912C] hover:text-[#ffbe00] shadow-sm transition-colors hover:bg-slate-50 ">
-            <x-icones.crayon class="w-6 h-6 hover:cursor-pointer "  />
-        </button>
-        <button type="button" class="inline-flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-red-500  hover:text-red-400  shadow-sm transition-colors ">
-            <x-icones.poubelle  class="w-6 h-6 hover:cursor-pointer "  />
-        </button>
-    </div>       
+@php($aImage = filled($machine->chemin_image))
+
+<article @class(['group relative flex h-[520px] w-full max-w-[280px] flex-col items-center gap-2.5 overflow-hidden rounded-2xl border border-slate-200/80 bg-white px-6 py-4 shadow-sm transition-shadow hover:shadow-md', 'justify-between' => ! $aImage,])>
+    @if ($aImage)
+        <img class="aspect-[2/3] h-auto w-full shrink-0 rounded-2xl object-cover object-center shadow-sm" loading="lazy" src="{{ \Illuminate\Support\Facades\Storage::url($machine->chemin_image) }}" alt="{{ $machine->nom ?? 'Image non disponible' }}">
     @endif
-    @if (!empty($machine->chemin_image))
-        <div class="relative h-44 bg-slate-100 overflow-hidden">
-            <img class="block w-full aspect-[2/3] object-cover rounded-2xl shadow-sm" loading="lazy" src="{{ \Illuminate\Support\Facades\Storage::url($machine->chemin_image)}}" alt="Image non disponible">
-        </div>    
-    @endif
-    <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between">
-    <div>
-        <h3 class="text-base font-bold text-slate-900"> {{$machine->nom}} </h3>
-        @if (!empty($machine->description))
-            <p class="text-xs text-slate-500 mt-2 leading-relaxed font-body"> {{$machine->description}} </p>
-        @endif
+
+    <div class="w-full shrink-0 text-center">
+        <h3 class="line-clamp-1 text-base font-medium text-slate-800">
+            {{ $machine->nom }}
+        </h3>
     </div>
 
+    <div
+        @class([ 'min-h-0 w-full overflow-y-auto pr-1 text-center', 'flex-1' => $aImage,])>
+        <p class="text-sm text-slate-500">
+            {{ $machine->description }}
+        </p>
+    </div>
+
+    <div @class(['w-full shrink-0 pt-1 text-center', 'mt-auto' => $aImage])>
+        <span class="line-clamp-1 text-xs text-slate-400">
+            {{ $machine->categorie->nom }}
+        </span>
     </div>
 </article>

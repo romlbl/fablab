@@ -1,7 +1,9 @@
-@props(['modele', 'libelle', 'choix' => []])
+@props(['modele', 'libelle' => '','placeholder' => '' ,'choix' => []])
 
 <div {{ $attributes->merge(['class' => 'flex flex-col gap-1.5 w-full']) }}>
-    <span class="text-xs font-semibold text-slate-600">{{ $libelle }}</span>
+    @if ($libelle)
+       <span class="text-xs font-semibold text-slate-600">{{ $libelle }}</span>     
+    @endif
     <div class="relative w-full"
         x-data="{
             ouvert: false,
@@ -32,7 +34,7 @@
         <div @click="$refs.champ.focus()" class="flex min-h-[40px] cursor-text flex-col items-stretch gap-1 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 transition focus-within:border-[#10203E]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#10203E]/10 hover:border-slate-300">
             <div class="flex items-center gap-2">
                 <x-icones.rechercher class="h-4 w-4 shrink-0 text-slate-400" />
-                <input x-ref="champ" type="text" x-model="recherche" @focus="ouvert = true" @click.stop="ouvert = true" @keydown.escape="ouvert = false" @keydown.backspace="if (!recherche && ids.length) retirer(ids[ids.length - 1])" placeholder="{{ $libelle }}" autocomplete="off" class="min-w-0 w-full border-0 bg-transparent p-0 text-sm leading-5 font-medium text-slate-700 outline-none focus:ring-0 placeholder:font-normal placeholder:text-slate-400">
+                <input x-ref="champ" type="text" x-model="recherche" @focus="ouvert = true" @click.stop="ouvert = true" @keydown.escape="ouvert = false" @keydown.backspace="if (!recherche && ids.length) retirer(ids[ids.length - 1])" placeholder="{{ $libelle ? : $placeholder }}" autocomplete="off" class="min-w-0 w-full border-0 bg-transparent p-0 text-sm leading-5 font-medium text-slate-700 outline-none focus:ring-0 placeholder:font-normal placeholder:text-slate-400">
             </div>
 
             <template x-if="ids.length">

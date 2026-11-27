@@ -13,10 +13,10 @@
         <div class="border-b border-slate-100 pb-2 pt-2">
             <div class="flex items-start justify-between gap-3">
                 <h2 class="min-w-0 text-lg font-bold leading-tight text-slate-900">
-                    {{ $nom ?? 'Nom Client' }}
+                    {{ $nom ?? 'Nom Client' }} 
                 </h2>
 
-                <button id="close-sidebar" type="button" aria-label="Fermer le menu" class="tap-square -mr-2 -mt-1 inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 lg:hidden">
+                <button id="close-sidebar" @click="menuOuvert=false" type="button"  class="tap-square -mr-2 -mt-1 inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 lg:hidden">
                     <x-icones.close class="w-5 h-5 hover:cursor-pointer" />
                 </button>
 

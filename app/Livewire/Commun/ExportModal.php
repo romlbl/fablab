@@ -58,13 +58,13 @@ class ExportModal extends Component
                 $ligne['projet'] = $job->projet?->nom ?? '';
 
                 if ($role === 'admin') {
-                    $ligne['client']    = $job->client?->nom ?? '';
+                    $ligne['client'] = $job->client?->nom ?? '';
                     $ligne['operateur'] = $job->operateur?->nom ?? '';
                 }
 
-                $ligne['debut']        = $job->debut;
-                $ligne['fin']          = $job->fin;
-                $ligne['status']       = $job->status;
+                $ligne['debut'] = $job->debut ? Carbon::parse($job->debut)->format('d/m/Y H:i') : '';
+                $ligne['fin'] = $job->fin ? Carbon::parse($job->fin)->format('d/m/Y H:i') : '';
+                $ligne['status'] = $job->status;
 
                 $lignes[] = $ligne;
             }else{
@@ -91,8 +91,8 @@ class ExportModal extends Component
                     if ($role === 'admin') {
                         $ligne['operateur'] = $estPremiereLigne ? ($job->operateur?->nom ?? '') : '';   
                     }
-                    $ligne['debut'] = $estPremiereLigne ? ($job->debut) : '';
-                    $ligne['fin'] = $estPremiereLigne ? ($job->fin) : '';
+                    $ligne['debut'] = $estPremiereLigne && $job->debut ? Carbon::parse($job->debut)->format('d/m/Y H:i') : '';
+                    $ligne['fin'] = $estPremiereLigne ? Carbon::parse($job->fin)->format('d/m/Y H:i') : '';
                     $ligne['status'] = $estPremiereLigne ? ($job->status) : '';
 
                     $lignes[] = $ligne;
